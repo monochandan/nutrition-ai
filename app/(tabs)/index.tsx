@@ -22,7 +22,7 @@ import SubscriptionCard from '@/components/SubscriptionCard';
 
 const SafeAreaView = styled(RNSafeAreaView);
 
-const index = () => {
+const Tabs = () => {
 
     const [expandedSubscriptionId, setExpandedSubscriptionId] = useState<string | null>(null);
 
@@ -220,4 +220,4 @@ const index = () => {
   )
 }
 
-export default index
+export default Tabs;
