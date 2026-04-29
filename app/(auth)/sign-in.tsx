@@ -4,6 +4,7 @@ import { SafeAreaView } from 'react-native-safe-area-context'
 
 import { StyleSheet } from 'react-native';
 import { Link } from 'expo-router';
+import CustomeInput from '@/components/CustomInput';
 
 const SignIn = () => {
   return (
@@ -11,14 +12,16 @@ const SignIn = () => {
 
           <Text style={styles.title}>Sign In</Text>
 
-          <TextInput 
-              placeholder='Email' 
-              style={styles.input}/>
+          <CustomeInput placeholder="Email" 
+                        // style={styles.input} 
+                        autoFocus
+                        autoCapitalize={'none'} 
+                        keyboardType={'email-address'}
+                        autoCorrect={false}/>
 
-          <TextInput 
-              placeholder='Password' 
-              style={styles.input} 
-              secureTextEntry={true}/>
+          <CustomeInput  placeholder="Password" 
+                         secureTextEntry={true}
+                         />
           
           <Pressable onPress={() => {console.log('pressed')}} style={styles.button}>
             <Text style={styles.buttontext}>Sign In</Text>
@@ -44,13 +47,6 @@ const SignIn = () => {
     title:{
       fontSize: 24, 
       fontWeight: '600',
-    },
-    input:{
-      width: 300,
-      borderWidth: 1,
-      padding: 10,
-      borderRadius: 5,
-      borderColor: '#ccc',
     },
     button:{
       padding: 10,

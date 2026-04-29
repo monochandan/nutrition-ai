@@ -1,56 +1,27 @@
 import { TextInput, StyleSheet, TextInputProps, Text, View } from "react-native"
 import {Control, Controller,FieldValues, Path} from 'react-hook-form';
-type CustomeInputProps<T extends FieldValues>={
 
-    control: Control<T> // custom fileds    // any;   
-    name: Path<T>;
-    // custome field
-} & TextInputProps
+// to dynamically get the input props for different inputs
+type CustomeInputProps = {
 
-export default function CustomeInput<T extends FieldValues>({control, name, ...props}: CustomeInputProps<T>){
+}& TextInputProps;
+
+export default function CustomeInput(props: CustomeInputProps){
     return (
-
-                <Controller 
-                    control={control} 
-                    name={name} 
-                    // rules={{required: "This field is required!"}} 
-                    render={({
-                        field: {value, onChange, onBlur},
-                        fieldState:{error}
-                        }) => (
-
-                        <View style={styles.container}>
-
-                            <TextInput 
-                                        {...props}
-                                        style={[styles.input, props.style]}
-                                        value = {value}
-                                        onChangeText={onChange}
-                                        onBlur={onBlur}
-                                />
-                            
-                            <Text style={styles.error}>{error?.message}</Text>
-                        </View>
-                )}/>
-
-        
+        <TextInput
+            {...props}
+            style={styles.input}
+        />
     )
-}
+
+};
 
 const styles = StyleSheet.create({
-
-    container:{
-        gap:2,
+    input:{
+      width: 300,
+      borderWidth: 1,
+      padding: 10,
+      borderRadius: 5,
+      borderColor: '#ccc',
     },
-
-    input: {
-    borderWidth: 1,
-    padding: 10,
-    borderRadius: 5,
-    borderColor: '#ccc',
-
-  },
-  error:{
-    color:"crimson",
-  }
-})
+});
