@@ -1,0 +1,30 @@
+I want to create an dedicated app for personalized the required neutritians intake for individuals.
+I want to design it focusing on the health niche. the apps color and font should be focused on  health related.
+
+## My idea in details:
+1. Onboarding: initially user should give some health related info to start.
+        It should be max 8-10 questions to know about his or her health condition
+
+FREE PRODUCT:
+
+        2. only generate the food plan in home screen
+
+PAID PRODUCT:
+        3. User can like , dislike, completed, skip the food, that have refered to him. which help the app to 
+            understand the user habbit over time and makes it more personalized to him or her.
+        4. The app can generate or prefer a food item from an image (image recognition), whaht can help him or her to consume.
+            For example: user will take a picture from his fridge/ gricery bucket, my app will suggest
+            him best combination for differnt meals.
+        5. We will sync the smart devices with our app, so that, it can change the meal suggestion in real time
+            depending on the users body condition (heart rate, blood preasure, sleeping habit)
+        6. App will automatically analyse the all historic data  and every time become more perfect for the individuals.
+
+## 5 Screens of the app:
+    1. Onboarding (contains questions with sliders)
+    2. Sign-In / Sign-Up / Skip to free plan (without/with account)
+    3. Home page - showes the plans (today plans)
+    4. settings - (change the onboarding questions answers, add extra info, see progress, signout, signin)
+    5. subscriptions - (show the availiable plans, users current plan)
+    6. insights - (analytical data - sleeping patter, blood preassure, or is the food plan effective or not)
+
+        

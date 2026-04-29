@@ -1,0 +1,66 @@
+- PROJECT SETUP
+[
+    - create app by command in the current folder - npx create-expo-app@latest
+    
+    - run npx expo start (to see if the app running correctly or not)
+
+    - manualy delet all contents inside <ParallaxScrollView>,  from app > (tabs) > index.tsx
+
+    - instead of manually delete all otehr stuffs from the project, in a new terminal just run npm run reset-project.
+]
+
+- SETUP ROUTES
+[
+    - create app > sign-in.tsx
+    - at 3:26:42
+]
+
+- installing nativewind
+[
+    - npx expo install nativewind@preview react-native-css react-native-reanimated react-native-safe-area-context
+    - npx expo install --dev tailwindcss @tailwindcss/postcss postcss
+    - npx expo customize metro.config.js
+    - change the global.css and added custome designs
+
+]
+
+- TabBar
+[
+    - install:  npm i clsx (join different class togather)
+    - https://reactnavigation.org/docs/bottom-tab-navigator/#options
+]
+
+- Camera
+[
+    - npx expo install expo-camera
+    - npx expo install expo-image-picker
+]
+home page
+[
+    - npm install dayjs
+]
+progress bar
+[
+    - npm install --save react-circular-progressbar
+    - npx expo install react-native-svg
+
+    - for react native above both lines are not appropriate for app
+
+    - npm i --save react-native-circular-progress react-native-svg
+    - npm install react-native-progress --save
+]
+
+- api call
+[
+    - api.json web -> output: "server"
+]
+
+- supabase integration
+[
+    - npm install @react-native-async-storage/async-storage
+]
+
+- clerk auth
+[
+    - npx expo install @clerk/expo expo-secure-store
+]

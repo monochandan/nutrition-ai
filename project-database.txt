@@ -1,0 +1,366 @@
+SELECT * FROM onboarding_options
+
+-- change the value of question 1, question type  from number to single choice-
+UPDATE onboarding_questions SET question_type = 'single_choice' WHERE id = 1;
+
+select * from onboarding_questions
+
+select * from user_onboarding_multi_answers
+
+select * from user_onboarding_answers
+
+select * from user_account
+
+
+
+
+INSERT INTO user_account(id, name, email, password, onboarding_complete)
+VALUES(2, 'mk', 'dc', '1234', TRUE)
+
+-- DELETE rows with id 36, 37, 38, 39
+DELETE FROM onboarding_options WHERE id = 36
+
+DELETE FROM onboarding_options WHERE id = 37
+
+DELETE FROM onboarding_options WHERE id = 38
+DELETE FROM onboarding_options WHERE id = 39
+
+DELETE FROM user_account WHERE id = 2
+DELETE FROM onboarding_options WHERE id = 40
+
+
+
+SELECT * FROM diet_plans
+
+SELECT * FROM diet_plan_days
+SELECT * FROM diet_meals
+SELECT * FROM meal_items
+-- SELECT * FROM meal_items
+
+ALTER TABLE diet_plans DROP COLUMN notes
+
+
+
+ALTER TABLE diet_plans ADD COLUMN plan_type VARCHAR(20) NOT NULL
+
+ALTER TABLE diet_plan_days ADD COLUMN notes VARCHAR(50) DEFAULT NULL
+
+ALTER TABLE diet_meals ADD COLUMN protien FLOAT DEFAULT NULL;
+ALTER TABLE diet_meals ADD COLUMN carbs FLOAT DEFAULT NULL;
+ALTER TABLE diet_meals ADD COLUMN fats FLOAT DEFAULT NULL;
+ALTER TABLE diet_meals ADD COLUMN other_nutritions FLOAT DEFAULT NULL;
+
+
+-- drop from meal_items protein, fat.....
+ALTER TABLE meal_items DROP COLUMN protein;
+ALTER TABLE meal_items DROP COLUMN carbs;
+ALTER TABLE meal_items DROP COLUMN fats;
+ALTER TABLE meal_items DROP COLUMN other_nutritions;
+
+
+ALTER TABLE diet_plan_days ALTER COLUMN notes TYPE TEXT;
+
+ALTER TABLE diet_meals 
+ALTER COLUMN other_nutritions 
+TYPE JSONB 
+USING other_nutritions::JSONB;
+
+ALTER TABLE diet_meals DROP COLUMN other_nutritions;
+
+ALTER TABLE diet_meals ADD COLUMN other_nutritions JSONB;
+
+
+
+SELECT * FROM user_plan_feedback;
+
+SELECT * FROM user_plan_progress;
+
+
+
+
+
+-- user table created in python (models.py) --
+
+CREATE TABLE onboarding_questions (
+    id SERIAL PRIMARY KEY,
+    question_text TEXT NOT NULL,
+    question_type VARCHAR(20) NOT NULL, 
+	question_subjekt VARCHAR(20) NOT NULL,
+    -- 'single_choice', 'multi_choice', 'text', 'number'
+    is_required BOOLEAN DEFAULT TRUE,
+    order_index INT NOT NULL, -- order of the questions --
+    created_at TIMESTAMP DEFAULT CURRENT_TIMESTAMP
+);
+
+-- store choices only for choice based options -- 
+CREATE TABLE onboarding_options (
+    id SERIAL PRIMARY KEY,
+    question_id INT NOT NULL, -- foreign key from onboarding_questions --
+    option_text TEXT NOT NULL, -- user see on screen --
+    option_value VARCHAR(100), -- backend logic for option_text for my ml uses --
+    created_at TIMESTAMP DEFAULT CURRENT_TIMESTAMP,
+
+    CONSTRAINT fk_question
+      FOREIGN KEY (question_id)
+      REFERENCES onboarding_questions(id)
+      ON DELETE CASCADE
+);
+
+
+CREATE TABLE user_onboarding_answers (
+    id SERIAL PRIMARY KEY, -- answer id  --
+    user_id INT NOT NULL, -- foreign key from user_account table --
+    question_id INT NOT NULL, -- foreign key , question id from onboarding_question table --
+    answer_text TEXT, -- answer text typed -- for description
+    selected_option_id INT, -- option choose -- for single_choice
+    created_at TIMESTAMP DEFAULT CURRENT_TIMESTAMP,
+
+    CONSTRAINT fk_user_question
+      FOREIGN KEY (question_id)
+      REFERENCES onboarding_questions(id)
+      ON DELETE CASCADE,
+
+    CONSTRAINT fk_selected_option
+      FOREIGN KEY (selected_option_id)
+      REFERENCES onboarding_options(id)
+      ON DELETE SET NULL
+);
+
+
+CREATE TABLE user_onboarding_multi_answers (
+    id SERIAL PRIMARY KEY,
+    user_id INT NOT NULL, -- foreign key from user_account --
+    question_id INT NOT NULL, -- foreign key from onboarding_question table --
+    option_id INT NOT NULL,
+	created_at TIMESTAMP DEFAULT CURRENT_TIMESTAMP,
+
+    CONSTRAINT fk_multi_question
+      FOREIGN KEY (question_id)
+      REFERENCES onboarding_questions(id)
+      ON DELETE CASCADE,
+
+    CONSTRAINT fk_multi_option
+      FOREIGN KEY (option_id)
+      REFERENCES onboarding_options(id)
+      ON DELETE CASCADE
+);
+
+-- // adding created_at in user_onboarding_multi_answers
+
+
+-- ALTER TABLE  user_onboarding_multi_answers ADD created_at TIMESTAMP DEFAULT CURRENT_TIMESTAMP 
+
+-- ALTER TABLE onboarding_questions ADD start_from DATE DEFAULT (CURRENT_DATE + 1) -- + INTERVAL '1 day' )
+-- drop the column , we want to createa row , adding a new question
+-- ALTER TABLE onboarding_questions DROP COLUMN start_from
+
+-- Drop the whole table onboarding_questions because added new column question_subjekt
+-- DROP TABLE onboarding_questions 
+
+-- DELETE from table
+
+-- DELETE FROM onboarding_questions;
+-- DELETE FROM user_onboarding_answers;
+-- DELETE FROM user_onboarding_multi_answers;
+-- DELETE FROM onboarding_options;
+-- DELETE FROM user_account
+
+--- Add new column in onboarding_questions , new column is question_subjekt
+ALTER TABLE onboarding_questions ADD question_subjekt VARCHAR(20) NOT NULL
+
+-- change the column value of id = 5
+UPDATE onboarding_questions
+SET question_type = 'single_choice', question_subjekt = 'profession'
+WHERE id = 5
+
+
+SELECT * FROM onboarding_options
+
+-- change the value of question 1, question type  from number to single choice-
+UPDATE onboarding_questions SET question_type = 'single_choice' WHERE id = 1;
+
+select * from onboarding_questions
+
+select * from user_onboarding_multi_answers
+
+select * from user_onboarding_answers
+
+select * from user_account
+
+
+
+
+INSERT INTO user_account(id, name, email, password, onboarding_complete)
+VALUES(2, 'mk', 'dc', '1234', TRUE)
+
+-- DELETE rows with id 36, 37, 38, 39
+DELETE FROM onboarding_options WHERE id = 36
+
+DELETE FROM onboarding_options WHERE id = 37
+
+DELETE FROM onboarding_options WHERE id = 38
+DELETE FROM onboarding_options WHERE id = 39
+
+DELETE FROM user_account WHERE id = 2
+DELETE FROM onboarding_options WHERE id = 40
+
+
+
+SELECT * FROM diet_plans
+
+SELECT * FROM diet_plan_days
+SELECT * FROM diet_meals
+SELECT * FROM meal_items
+-- SELECT * FROM meal_items
+
+ALTER TABLE diet_plans DROP COLUMN notes
+
+
+
+ALTER TABLE diet_plans ADD COLUMN plan_type VARCHAR(20) NOT NULL
+
+ALTER TABLE diet_plan_days ADD COLUMN notes VARCHAR(50) DEFAULT NULL
+
+ALTER TABLE diet_meals ADD COLUMN protien FLOAT DEFAULT NULL;
+ALTER TABLE diet_meals ADD COLUMN carbs FLOAT DEFAULT NULL;
+ALTER TABLE diet_meals ADD COLUMN fats FLOAT DEFAULT NULL;
+ALTER TABLE diet_meals ADD COLUMN other_nutritions FLOAT DEFAULT NULL;
+
+
+-- drop from meal_items protein, fat.....
+ALTER TABLE meal_items DROP COLUMN protein;
+ALTER TABLE meal_items DROP COLUMN carbs;
+ALTER TABLE meal_items DROP COLUMN fats;
+ALTER TABLE meal_items DROP COLUMN other_nutritions;
+
+
+ALTER TABLE diet_plan_days ALTER COLUMN notes TYPE TEXT;
+
+ALTER TABLE diet_meals 
+ALTER COLUMN other_nutritions 
+TYPE JSONB 
+USING other_nutritions::JSONB;
+
+ALTER TABLE diet_meals DROP COLUMN other_nutritions;
+
+ALTER TABLE diet_meals ADD COLUMN other_nutritions JSONB;
+
+
+
+SELECT * FROM user_plan_feedback;
+
+SELECT * FROM user_plan_progress;
+
+
+
+-- data entering for question onboarding tables --
+INSERT INTO onboarding_questions 
+(question_text, question_type, question_subjekt, is_required, order_index)
+VALUES
+('What is your age groupe?', 'single_choice','age', TRUE, 1),
+
+('What is your gender?', 'single_choice', 'gender', TRUE, 2),
+
+('What is your height?', 'single_choice', 'height', TRUE, 3),
+
+('What is your weight?', 'single_choice', 'weight', TRUE, 4),
+
+('What best describes your profession?','single_choice', 'profession', TRUE, 5),
+
+('How active are you daily?', 'single_choice', 'daily_activity', TRUE, 6),
+
+('What are your health goals?', 'multi_choice','health_goals', TRUE, 7),
+
+('Do you follow any specific diet?', 'single_choice', 'followeddiet', FALSE, 8),
+
+('How many hours do you sleep on average?', 'single_choice', 'sleep_hour', TRUE, 9),
+
+('If you want to add something?', 'description','extra_information', FALSE, 10),
+
+('Please Enter starting date?', 'date','starting_date', TRUE, 11);
+
+
+-- INSERT INTO onboarding_questions(question_text, question_type, is_required, order_index)
+-- VALUES
+-- ('Please Enter starting date?', 'date', TRUE, 11)
+
+
+
+
+
+INSERT INTO onboarding_options 
+(question_id, option_text, option_value)
+VALUES
+--What is your age groupe?--
+(1, '0 to 9 (children)', '0-9'),
+(1, '10 to 19 (adolescents aged)', '10-19'),
+(1, '15 to 24 (young people)', '15-24'),
+(1, '25 to 59 (adults)', '25-59'),
+(1, '>59', '60-100'),
+
+-- 'What is your gender?' --
+(2, 'Male', 'male'),
+(2, 'Female', 'female'),
+(2, 'Other', 'other'),
+(2, 'Not to say', 'random'),
+
+-- What is your height? --
+(3, 'Below 150 cm', 'below 150'),
+(3, '150 – 159 cm', '150-159'),
+(3, '160 – 169 cm', '160-169'),
+(3, '170 – 179 cm', '170-179'),
+(3, '180 – 189 cm', '180-189'),
+(3, '190 cm or above', '190 plus'),
+
+-- 'What is your weight?' --
+-- BMI = weight(kg) / height(m)^2 --
+(4, 'Underweight (BMI < 18.5)', 'underweight'),
+(4, 'Healthy weight (BMI 18.5 – 24.9)', 'healthy'),
+(4, 'Overweight (BMI 25 – 29.9)', 'overweight'),
+(4, 'Obesity – Class 1 (BMI 30 – 34.9)', 'obesity_class_1'),
+(4, 'Obesity – Class 2 (BMI 35 – 39.9)', 'obesity_class_2'),
+(4, 'Obesity – Class 3 (BMI ≥ 40)', 'obesity_class_3'),
+
+-- What best describes your profession? --
+(5, 'Desk Job', 'desk_job'),
+(5, 'Student', 'student'),
+(5, 'Athlete', 'athlete'),
+(5, 'Physical Labor', 'physical_labor'),
+(5, 'Night Shift Worker', 'night_shift'),
+
+-- 'How active are you daily?'--
+(6, 'Sedentary', 'sedentary'),
+(6, 'Lightly Active', 'light'),
+(6, 'Moderately Active', 'moderate'),
+(6, 'Very Active', 'high'),
+
+-- What are your health goals? --
+(7, 'Stay Energetic', 'energy'),
+(7, 'Weight Loss', 'weight_loss'),
+(7, 'Muscle Gain', 'muscle_gain'),
+(7, 'Improve Focus', 'focus'),
+(7, 'Better Sleep', 'sleep'),
+
+-- Do you follow any specific diet? --
+(8, 'Stay Energetic', 'energy'),
+(8, 'Weight Loss', 'weight_loss'),
+(8, 'Muscle Gain', 'muscle_gain'),
+(8, 'Improve Focus', 'focus'),
+(8, 'Better Sleep', 'sleep'),
+
+-- How many hours do you sleep on average? --
+(9, 'Less than 5 hours', '< 5'),
+(9, '5–6 hours', '5-6'),
+(9, '6–7 hours', '6-7'),
+(9, '7–8 hours', '7-8'),
+(9, 'More than 8 hours', '8 +'),
+
+-- -- If you want to add something? --
+(10, 'Let us know any important things about your health', 'initial value'),
+
+(11, 'Enter starting date', 'date');
+
+
+
+
+

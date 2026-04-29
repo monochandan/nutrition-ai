@@ -1,0 +1,24 @@
+git switch -c activityIndicatorSimulator //Nswitch to a new branch named activityIndicatorSimulator
+
+
+git switch main // switch to existing branch to push into it...
+
+
+
+################### problem ##########################################################################
+git push -u origin main
+To https://github.com/monochandan/React-Mobile-Apps.git
+ ! [rejected]        main -> main (non-fast-forward)
+error: failed to push some refs to 'https://github.com/monochandan/React-Mobile-Apps.git'
+hint: Updates were rejected because the tip of your current branch is behind
+hint: its remote counterpart. Integrate the remote changes (e.g.
+hint: 'git pull ...') before pushing again.
+hint: See the 'Note about fast-forwards' in 'git push --help' for details.
+
+################### SOlution #######################################################################
+
+git stash && git pull --rebase origin main && git stash pop && git push -u origin main
+
+#####################################################################################################
+
+
