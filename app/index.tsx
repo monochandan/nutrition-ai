@@ -1,46 +1,111 @@
-import { View, Text, StyleSheet, Button, TextInput } from "react-native";
-import { Link } from "expo-router";
-import { useAuth } from "@clerk/expo";
-import {useState} from 'react';
-// import {useForm, Controller} from "react-hook-form";
-export default function Index(){
-  
-  const {isSignedIn, signOut} = useAuth();
+import { View, Text, Image, Button } from 'react-native';
+import React, { useEffect, useState } from 'react';
+import {Redirect, useRouter} from 'expo-router';
+import { StyleSheet, Pressable } from 'react-native'
+import { supabase } from '@/utils/supabase';
+// import Auth from './(auth)/auth';
+// import Account from './(auth)/Account';
+import {useAuth} from "@clerk/expo";
+import { SafeAreaView } from 'react-native-safe-area-context';
+import { icons } from '@/constants/icons';
 
-  
+import * as Progress from 'react-native-progress';
 
-  console.log("From auth provider: ", isSignedIn, signOut)
+const App = () => {
 
-  return (
-      <View style={styles.container}>
-            <Text style={styles.title}>Wlecome to the world!</Text>
-            <Link href='/(auth)/sign-in'>Go to Sign In</Link>
-            {/* <Link href='/(auth)/sign-up'>Go to Sign In</Link> */}
+   const step = 1
+   const interval = 50 // after 50 ms
+   const maxProgress = 200
 
-            
+   const [progressPercentage, setProgressPercentage] = useState(1);
+   const [isActive, setIsActive] = useState(true);
+   const router = useRouter();
 
-            <Link href='/(tabs)'>Go to protected screens</Link>
-            <Text>{isSignedIn ? 'Authenticated' : 'Not Authenticated'}</Text>
-            <Button title='Sign Out' onPress={signOut}/>
-      </View>
-  )
+   const {isSignedIn, signOut} = useAuth();
+
+   useEffect(() =>{
+
+      // just in case, 
+      if(!isActive || progressPercentage >=  maxProgress){
+         return;
+      }
+
+      console.log(progressPercentage);
+      const timer = setTimeout(() => {
+            setProgressPercentage(progressPercentage + step);
+      }, interval)
+
+      return () => clearTimeout(timer);
+
+   },[progressPercentage, isActive]);
+
+
+   console.log("From root index:", isSignedIn, signOut);
+
+   if(progressPercentage >= maxProgress){
+        if(isSignedIn){
+          return (
+            <Redirect href="/(tabs)"/>
+         )
+        }
+        else{
+             return (
+              <Redirect href="/(auth)/sign-in"/>
+         )
+        }
+        
+   }
+   return (
+      <SafeAreaView style={styles.container}>
+            <Image source={icons.logo} className='size-16 mt-0.5 mb-5'/>
+            <Progress.Bar progress={progressPercentage/maxProgress} animated={true} width={200} className='mb-5'/>
+            <Text>Redirecting to sign in .....</Text>
+            <Pressable title='Sign up' style={styles.button} onPress={() => {
+               setIsActive(false);
+               router.replace("/(auth)/sign-up");
+            }} >
+               <Text style={styles.buttonText}>Sign Up</Text>
+            </Pressable>
+      </SafeAreaView>
+   )
+
 };
+
 
 const styles = StyleSheet.create({
 
-  container:{
-    flex:1,
-    justifyContent:'center',
+   container:{
+      flex: 1,
+      justifyContent:'center',
+      alignItems:'center',
+      backgroundColor: "#fff9e3",
+   },
+   // logo:{
+   //    width:,
+   //    height: 64,
+   //    // size:,
+   //    marginTop:10,
+   // }
+   buttonText:{
+    color:'white',
+    fontSize:16,
+    fontWeight:'600',
+   },
+   button:{
+    position: 'absolute',
+    bottom: 100,
+    width: 300,
+    borderRadius: 25,
+    backgroundColor:'#4353FD',
+    padding: 15,
     alignItems:'center',
-    gap: 20,
-  },
-  title:{
-    fontSize: 24,
-    fontWeight: 'bold',
-  }
+
+
+   },
 
 });
 
+export default App;
 
 
 
@@ -52,105 +117,83 @@ const styles = StyleSheet.create({
 
 
 
-// import { View, Text, Image, Button } from 'react-native';
-// import React, { useEffect, useState } from 'react';
-// import {Redirect, useRouter} from 'expo-router';
-// import { StyleSheet, Pressable } from 'react-native'
-// import { supabase } from '@/utils/supabase';
-// import Auth from './(auth)/auth';
-// import Account from './(auth)/Account';
-// import {useAuth} from "@clerk/expo";
-// import { SafeAreaView } from 'react-native-safe-area-context';
-// import { icons } from '@/constants/icons';
 
-// import * as Progress from 'react-native-progress';
 
-// const App = () => {
 
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+// import { View, Text, StyleSheet, Button, TextInput } from "react-native";
+// import { Link } from "expo-router";
+// import { useAuth } from "@clerk/expo";
+// import {useState} from 'react';
+// // import {useForm, Controller} from "react-hook-form";
+// export default function Index(){
+  
+//   const {isSignedIn, signOut} = useAuth();
 
   
-   /// later will be added
-   // const step = 1
-   // const interval = 50 // after 50 ms
-   // const maxProgress = 200
 
-   // const [progressPercentage, setProgressPercentage] = useState(1);
-   // const [isActive, setIsActive] = useState(true);
-   // const router = useRouter();
+//   console.log("From auth provider: ", isSignedIn, signOut)
 
-   // useEffect(() =>{
+//   return (
+//       <View style={styles.container}>
+//             <Text style={styles.title}>Wlecome to the world!</Text>
+//             <Link href='/(auth)/sign-in'>Go to Sign In</Link>
+//             {/* <Link href='/(auth)/sign-up'>Go to Sign In</Link> */}
 
-   //    // just in case, 
-   //    if(!isActive || progressPercentage >=  maxProgress){
-   //       return;
-   //    }
+            
 
-   //    console.log(progressPercentage);
-   //    const timer = setTimeout(() => {
-   //          setProgressPercentage(progressPercentage + step);
-   //    }, interval)
-
-   //    return () => clearTimeout(timer);
-
-   // },[progressPercentage, isActive]);
-
-
-   // const{isSignedIn, signOut} = useAuth();
-   // console.log("From root index:", isSignedIn, signOut);
-
-   // if(progressPercentage >= maxProgress){
-   //       return (
-   //          <Redirect href="/(auth)/sign-in"/>
-   //       )
-   // }
-   // return (
-   //    <SafeAreaView style={styles.container}>
-   //          <Image source={icons.logo} className='size-16 mt-0.5 mb-5'/>
-   //          <Progress.Bar progress={progressPercentage/maxProgress} animated={true} width={200} className='mb-5'/>
-   //          <Text>Redirecting to sign in .....</Text>
-   //          <Pressable title='Sign up' style={styles.button} onPress={() => {
-   //             setIsActive(false);
-   //             router.push("/(auth)/sign-up");
-   //          }} >
-   //             <Text style={styles.buttonText}>Sign Up</Text>
-   //          </Pressable>
-   //    </SafeAreaView>
-   // )
-
+//             <Link href='/(tabs)'>Go to protected screens</Link>
+//             <Text>{isSignedIn ? 'Authenticated' : 'Not Authenticated'}</Text>
+//             <Button title='Sign Out' onPress={signOut}/>
+//       </View>
+//   )
 // };
-
 
 // const styles = StyleSheet.create({
 
-//    container:{
-//       flex: 1,
-//       justifyContent:'center',
-//       alignItems:'center',
-//       backgroundColor: "#fff9e3",
-//    },
-//    // logo:{
-//    //    width:,
-//    //    height: 64,
-//    //    // size:,
-//    //    marginTop:10,
-//    // }
-//    buttonText:{
-//     color:'white',
-//     fontSize:16,
-//     fontWeight:'600',
-//    },
-//    button:{
-//     position: 'absolute',
-//     bottom: 100,
-//     width: 300,
-//     borderRadius: 25,
-//     backgroundColor:'#4353FD',
-//     padding: 15,
+//   container:{
+//     flex:1,
+//     justifyContent:'center',
 //     alignItems:'center',
-
-
-//    },
+//     gap: 20,
+//   },
+//   title:{
+//     fontSize: 24,
+//     fontWeight: 'bold',
+//   }
 
 // });
 
-// export default App;
+
+
+
+
+
+
+
+
+
+
+
