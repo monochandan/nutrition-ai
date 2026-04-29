@@ -1,9 +1,13 @@
-import { View, Text, StyleSheet, Button } from "react-native";
+import { View, Text, StyleSheet, Button, TextInput } from "react-native";
 import { Link } from "expo-router";
 import { useAuth } from "@clerk/expo";
+import {useState} from 'react';
+// import {useForm, Controller} from "react-hook-form";
 export default function Index(){
   
   const {isSignedIn, signOut} = useAuth();
+
+  
 
   console.log("From auth provider: ", isSignedIn, signOut)
 
@@ -12,6 +16,9 @@ export default function Index(){
             <Text style={styles.title}>Wlecome to the world!</Text>
             <Link href='/(auth)/sign-in'>Go to Sign In</Link>
             {/* <Link href='/(auth)/sign-up'>Go to Sign In</Link> */}
+
+            
+
             <Link href='/(tabs)'>Go to protected screens</Link>
             <Text>{isSignedIn ? 'Authenticated' : 'Not Authenticated'}</Text>
             <Button title='Sign Out' onPress={signOut}/>
