@@ -2,6 +2,7 @@ import { View, Text, TouchableOpacity } from 'react-native'
 import React from 'react'
 import { SafeAreaView } from 'react-native-safe-area-context'
 import axios from "axios";
+import type { AxiosRequestConfig, AxiosResponse, AxiosError } from "axios";
 import {useState, useEffect} from "react";
 import { supabase } from '@/utils/supabase';
 

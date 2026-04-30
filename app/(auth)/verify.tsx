@@ -22,12 +22,29 @@ import {zodResolver} from '@hookform/resolvers/zod';
 // import {  useSignIn } from '@clerk/expo'
 import {type Href, useRouter} from  'expo-router';
 // import {useEffect} from 'react';
-import { useClerk, useSignUp } from "@clerk/expo";
+import { useClerk, useSignUp, useUser } from "@clerk/expo";
 // import SignUp from "./sign-up";
 
 // import * as Progress from 'react-native-progress';
 
 
+import axios from "axios";
+import type { AxiosRequestConfig, AxiosResponse, AxiosError } from "axios";
+
+// post to backend with this data
+type userData =  {
+  clerk_id: string,
+  email: string,
+  name: string,
+  imageurl: string,
+  plan: string,
+  isActive: boolean,
+  onboarding_complete: boolean,
+}
+// expected response
+// type CreatePostResponse = userData & {id: number}
+
+// verification of input schema, using zod
 const verifySchema = z.object({
   code: z.string(
     {message:"code is required."})
@@ -49,6 +66,7 @@ export default function VerifyScreen() {
   const router = useRouter();
   const {signUp} = useSignUp();
   const {setActive} = useClerk();
+  const {user} = useUser();
 
   const {control, handleSubmit, formState: {errors}, } = useForm<VerifyFields>({
     defaultValues:{
@@ -68,6 +86,15 @@ console.log("errors from verification page:",errors);
 //     }, 5000);
 //     return () => clearTimeout(timer); // cleanup if user verifies in time
 // },[])
+
+const userRegostrationSupabase = async (data: userData) => {
+
+  const response = await axios.post(
+    "https://sustainer-sufferer-dormitory.ngrok-free.dev/api/auth/createUser",
+    data
+  )
+  return response.data;
+}
 
   const onVerify = async ({code}: VerifyFields) => {
 
@@ -89,6 +116,23 @@ console.log("errors from verification page:",errors);
                         setActive({
                             session: session?.id
                         })
+                         //https://sustainer-sufferer-dormitory.ngrok-free.dev
+                        // call backend to add the user
+                        const name = user?.primaryEmailAddress?.emailAddress.split('@')[0];
+                        const newUser: userData = {
+                          clerk_id: user?.id ?? '',
+                          email: user?.primaryEmailAddress?.emailAddress ?? '',
+                          name: name || '',
+                          imageurl: user?.imageUrl ?? '',
+                          plan: "free",
+                          isActive: false,
+                          onboarding_complete: false,
+                        }
+                        console.log("New user:", newUser);
+                        const response = userRegostrationSupabase(newUser);
+                        console.log("Resoinse: ", response)
+                          //axios.
+                        // check if the onboarding completed or not if not then router to onboarding page
                         router.replace(decorateUrl("/(tabs)") as Href);
                 }   
             })
@@ -163,14 +207,12 @@ console.log("errors from verification page:",errors);
 
 const styles = StyleSheet.create({
   container: {
-    flex: 1,
-    backgroundColor: '#fff',
-    // alignItems: 'center',
-    justifyContent: 'center',
-    padding: 20,
-    gap: 20,
-    margin: 50,
-    borderRadius: 10,
+      flex:1,
+      justifyContent:'center',
+      alignItems:'center',
+      backgroundColor: "#fff9e3",
+      padding: 20,
+      gap: 10,
   }
   ,
   title:{

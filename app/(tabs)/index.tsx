@@ -1,15 +1,16 @@
-import { Image, View, ScrollView, Text, TouchableOpacity, FlatList } from 'react-native';
+import { Image, View, Text, FlatList, StyleSheet, Pressable } from 'react-native';
 import React from 'react';
 import dayjs from "dayjs";
-import {Link} from 'expo-router';
-import {camera} from "expo-camera";
-import * as ImagePicker from "expo-image-picker";
-import {useState} from "react";
+// import {Link} from 'expo-router';
+// import {camera} from "expo-camera";
+// import * as ImagePicker from "expo-image-picker";
+import {useState, useEffect} from "react";
 import {icons} from "@/constants/icons";
 // import folder from "@/constants/icons";
 
-import images from "@/constants/images";
-import {HOME_USER, calorie_count, HEALTH_STATS, UPCOMING_SUBSCRIPTIONS, HOME_SUBSCRIPTIONS, MEAL_PLANS} from "@/constants/data";
+// import images from "@/constants/images";
+// import {HOME_USER, calorie_count, HEALTH_STATS, UPCOMING_SUBSCRIPTIONS, HOME_SUBSCRIPTIONS, MEAL_PLANS} from "@/constants/data";
+import {calorie_count, HEALTH_STATS,MEAL_PLANS} from "@/constants/data";
 import {SafeAreaView as RNSafeAreaView} from "react-native-safe-area-context";
 import {styled} from "nativewind";
 
@@ -18,11 +19,43 @@ import UpcomingSubscriptionCard from "@/components/UpcomingSubscriptionCard"
 
 import {AnimatedCircularProgress} from 'react-native-circular-progress';
 import SubscriptionCard from '@/components/SubscriptionCard';
+import { useUser } from '@clerk/expo';
 
-
+import {useRouter} from "expo-router";
 const SafeAreaView = styled(RNSafeAreaView);
 
 const Tabs = () => {
+
+    const { user } = useUser();
+    const router = useRouter();
+
+    const [imageurl, setImageUlr] = useState<any>();
+    const [emailaddress, setEmailAddress] = useState<any>();
+    const [userid, setUserId] = useState<any>();
+    const [imageSource, setImageSource] = useState<any>();
+
+
+    useEffect(() => {
+        // every time the page load, user data will be fetchd and showd in the index page
+        setImageUlr(user?.imageUrl);
+        setEmailAddress(user?.primaryEmailAddress?.emailAddress);
+        setUserId(user?.id);
+
+        const params = new URLSearchParams()
+
+        params.set("height", '64');
+        params.set("width", '64');
+
+        setImageSource(`${imageurl}?${params.toString()}`);
+
+        console.log("url", user?.imageUrl);
+        console.log("email address:", user?.primaryEmailAddress?.emailAddress);
+        console.log("User Id:", user?.id);
+        console.log("Image Source:", imageSource);
+
+    },[user?.imageUrl, user?.primaryEmailAddress?.emailAddress,user?.id, imageurl, imageSource]);
+
+
 
     const [expandedSubscriptionId, setExpandedSubscriptionId] = useState<string | null>(null);
 
@@ -34,7 +67,7 @@ const Tabs = () => {
 
     const percentage = (calorie_count.completed / calorie_count.total) * 100;
     // useState <any>([]);
-    const [selectedImage, setSelectedImage] = useState<any>([]);
+    // const [selectedImage, setSelectedImage] = useState<any>([]);
 
     // const pickImageAsync = async () => {
     //     let result = await ImagePicker.launchImageLibraryAsync({
@@ -58,27 +91,27 @@ const Tabs = () => {
 
 
 
-    const clickImageAsync = async () => {
-        let result = await ImagePicker.launchCameraAsync({
-            mediaTypes: ["images"],
-            allowMultipleSelection: false,
-            selectionLimit: 1,
-            quality: 1,
-            allowsEditing: true,
-        });
+    // const clickImageAsync = async () => {
+    //     let result = await ImagePicker.launchCameraAsync({
+    //         mediaTypes: ["images"],
+    //         allowMultipleSelection: false,
+    //         selectionLimit: 1,
+    //         quality: 1,
+    //         allowsEditing: true,
+    //     });
 
-        if (!result.canceled) {
-            const uris = result.assets.map((assets) => assets.uri);
+    //     if (!result.canceled) {
+    //         const uris = result.assets.map((assets) => assets.uri);
 
-            setSelectedImage(() => [...uris]);
-        }
-        else{
-            alert("You did not select any image.");
-        }
-    };
+    //         setSelectedImage(() => [...uris]);
+    //     }
+    //     else{
+    //         alert("You did not select any image.");
+    //     }
+    // };
 
 
-    console.log("Selected Images:", selectedImage);
+    // console.log("Selected Images:", selectedImage);
 
   return (
     <SafeAreaView className="flex-1 bg-background p-5">
@@ -88,13 +121,25 @@ const Tabs = () => {
 
                                 <View className="home-header">
                                         <View className="home-user">
-                                                <Image source={images.my_avatar} className="home-avatar"/>
-                                                <Text className="home-user-name">{dayjs(currentDate).format('MM/DD')}</Text>
+                                                <Image source={{uri: imageSource}} className="size-16 rounded-full"/>
+                                                <View style={styles.user_info}>
+                                                    {/* ml-4 text-xl font-sans-bold text-primary; */}
+                                                        <Text className='font-sans-light ml-1'>{emailaddress?.split('@')[0] || emailaddress}</Text>
+                                                        <Text className="font-sans-semibold ml-1">{dayjs(currentDate).format('MM/DD')}</Text>
+                                                </View>
+                                                
                                         </View>
 
                                         <View className="flex-row item-center gap-5">
-                                            <Image source={icons.add} className="home-add-icon"/>
-                                            <Image source={icons.imgscan} className="home-imscanner-icon"/>
+                                            <Pressable onPress={() => router.push("/analysis/add-plan")}>
+                                                    <Image source={icons.add} className="home-add-icon"/>
+                                            </Pressable>
+
+                                            <Pressable onPress={() => router.push("/analysis/image-scanner")}>
+                                                    <Image source={icons.imgscan} className="home-imscanner-icon"/>
+                                            </Pressable>
+                                            
+                                            
                                         </View>  
                                         
                                  </View>
@@ -219,5 +264,12 @@ const Tabs = () => {
     
   )
 }
+
+
+const styles = StyleSheet.create({
+    user_info:{
+        
+    }
+})
 
 export default Tabs;
