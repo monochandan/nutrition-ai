@@ -20,15 +20,15 @@ const Settings = () => {
 
   const router = useRouter();
 
-  useEffect(() => {
-      console.log("Auth:", isSignedIn);
-      console.log("Session:",sessionId);
-      console.log("User:",user);
-      console.log("User Id:", user?.id);
-      console.log("User email:", user?.primaryEmailAddress?.emailAddress);
-      console.log("Image Url", user?.imageUrl);
-      console.log("Created at: ", user?.createdAt);
-    }, [isSignedIn, sessionId, user]);
+  // useEffect(() => {
+  //     console.log("Auth:", isSignedIn);
+  //     console.log("Session:",sessionId);
+  //     console.log("User:",user);
+  //     console.log("User Id:", user?.id);
+  //     console.log("User email:", user?.primaryEmailAddress?.emailAddress);
+  //     console.log("Image Url", user?.imageUrl);
+  //     console.log("Created at: ", user?.createdAt);
+  //   }, [isSignedIn, sessionId, user]);
 
   
   const presSignOut = async () => {
@@ -39,6 +39,7 @@ const Settings = () => {
       //console.log("Signed In");
     }
 
+
     
 
   }
@@ -46,6 +47,10 @@ const Settings = () => {
     <SafeAreaView className="flex-1 bg-background p-5">
       <CustomButton text="Sign Out" onPress={
         presSignOut}/>
+
+      <CustomButton text="onBoarding" onPress={() => {
+        router.push("/onboarding")
+      }}/>
     </SafeAreaView>
   )
 }

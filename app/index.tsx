@@ -30,7 +30,7 @@ const App = () => {
          return;
       }
 
-      console.log(progressPercentage);
+      // console.log(progressPercentage);
       const timer = setTimeout(() => {
             setProgressPercentage(progressPercentage + step);
       }, interval)
@@ -40,7 +40,7 @@ const App = () => {
    },[progressPercentage, isActive]);
 
 
-   console.log("From root index:", isSignedIn, signOut);
+   // console.log("From root index:", isSignedIn, signOut);
 
    if(progressPercentage >= maxProgress){
         if(isSignedIn){

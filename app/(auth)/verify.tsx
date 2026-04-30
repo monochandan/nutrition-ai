@@ -4,7 +4,8 @@ import { Text,
   // Button, 
   // Pressable, 
   Platform,
-KeyboardAvoidingView, StyleSheet } from "react-native";
+KeyboardAvoidingView, StyleSheet, 
+Alert} from "react-native";
 
 
 import CustomButton from "@/components/CustomButton";
@@ -68,6 +69,8 @@ export default function VerifyScreen() {
   const {setActive} = useClerk();
   const {user} = useUser();
 
+  // const [userId, setUserId] = useState()
+
   const {control, handleSubmit, formState: {errors}, } = useForm<VerifyFields>({
     defaultValues:{
       // email: 'abc@gmail.com',
@@ -75,7 +78,7 @@ export default function VerifyScreen() {
     resolver:zodResolver(verifySchema),
   });
 
-console.log("errors from verification page:",errors);
+// console.log("errors from verification page:",errors);
 
 // const {signIn} = useAuth();
   // const {signIn} = useSignIn();
@@ -89,11 +92,21 @@ console.log("errors from verification page:",errors);
 
 const userRegostrationSupabase = async (data: userData) => {
 
-  const response = await axios.post(
-    "https://sustainer-sufferer-dormitory.ngrok-free.dev/api/auth/createUser",
-    data
-  )
-  return response.data;
+  try{
+
+      const response = await axios.post(
+      "https://sustainer-sufferer-dormitory.ngrok-free.dev/api/auth/createUser",
+      data
+    )
+    return response.data;
+
+  }catch(error: any){
+    console.error("Error from axios response catch: ",error.response?.data || error.message);
+    // throw error
+    console.log("Error from axios response catch JOSN: ", JSON.stringify(error, null, 2));
+  }
+
+  
 }
 
   const onVerify = async ({code}: VerifyFields) => {
@@ -109,7 +122,7 @@ const userRegostrationSupabase = async (data: userData) => {
 
         if(signUp.status === 'complete'){
             await signUp.finalize({
-                navigate: ({session, decorateUrl}) => {
+                navigate: async ({session, decorateUrl}) => {
                         // setActive() → creates session 
                         // useAuth() → reads session
                         // when use first create the account
@@ -118,32 +131,46 @@ const userRegostrationSupabase = async (data: userData) => {
                         })
                          //https://sustainer-sufferer-dormitory.ngrok-free.dev
                         // call backend to add the user
-                        const name = user?.primaryEmailAddress?.emailAddress.split('@')[0];
+
+                        const currentUser = session?.user
+                        const name = currentUser?.primaryEmailAddress?.emailAddress.split('@')[0];
                         const newUser: userData = {
-                          clerk_id: user?.id ?? '',
-                          email: user?.primaryEmailAddress?.emailAddress ?? '',
-                          name: name || '',
-                          imageurl: user?.imageUrl ?? '',
+                          clerk_id: currentUser?.id ?? '',
+                          email: currentUser?.primaryEmailAddress?.emailAddress ?? '',
+                          name: name ?? '',
+                          imageurl: currentUser?.imageUrl ?? '',
                           plan: "free",
                           isActive: false,
                           onboarding_complete: false,
                         }
                         console.log("New user:", newUser);
-                        const response = userRegostrationSupabase(newUser);
-                        console.log("Resoinse: ", response)
+                        const response = await userRegostrationSupabase(newUser);
+                        console.log("Response after getting the createUser in frontend: ", response);
                           //axios.
                         // check if the onboarding completed or not if not then router to onboarding page
-                        router.replace(decorateUrl("/(tabs)") as Href);
+                        if(response.message === "Success"){
+                            Alert.alert('Welcome to healthy Journey!')
+                            router.replace(decorateUrl("/(tabs)") as Href);
+                        }
+                        // else if(response.message === "Error"){
+                        //   Alert.alert('Please Try again!')
+                        //   router.replace(decorateUrl("/(auth)/sign-up") as Href);
+                        // }
+                        
+
+                        
                 }   
             })
         }
         else{
-            console.log('verification failed!');
-            console.log("signup attempt: ", signUp);
+            // console.log('verification failed!');
+            // console.log("signup attempt: ", signUp);
+            Alert.alert("Verification Failed", "Try Again!")
+            router.replace("/(auth)/sign-up")
         }
 
     }catch(error){
-        console.error(JSON.stringify(error, null, 2));
+        console.error("Error from catch block in verify page: ",JSON.stringify(error, null, 2));
     }
   };
 

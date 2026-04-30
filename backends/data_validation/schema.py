@@ -13,7 +13,7 @@ class SignUpRequest(BaseModel):
   clerk_id: str
   email: str
   name: str
-  imageURL: str
+  imageurl: str
   plan: str
   isActive: bool
   onboarding_complete: bool

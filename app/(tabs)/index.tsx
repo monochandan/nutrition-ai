@@ -48,10 +48,10 @@ const Tabs = () => {
 
         setImageSource(`${imageurl}?${params.toString()}`);
 
-        console.log("url", user?.imageUrl);
-        console.log("email address:", user?.primaryEmailAddress?.emailAddress);
-        console.log("User Id:", user?.id);
-        console.log("Image Source:", imageSource);
+        // console.log("url from index page", user?.imageUrl);
+        // console.log("email address from index page:", user?.primaryEmailAddress?.emailAddress);
+        // console.log("User Id from index page:", user?.id);
+        // console.log("Image Source from index page:", imageSource);
 
     },[user?.imageUrl, user?.primaryEmailAddress?.emailAddress,user?.id, imageurl, imageSource]);
 
