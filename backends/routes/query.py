@@ -36,6 +36,14 @@ ONBOARDING_QUESTIONS = [
     },
 ]
 
+question_answers = [
+
+]
+{
+    1:["option1"], 
+    2: ["option1", "option2"]
+}
+
 @router.post("/fetchOnboardingQuestions", response_model = OnboardingResponse)
 def fetchOnboardingQuestions(data: QuestionFetchingRequest):
 
@@ -60,14 +68,14 @@ def fetchOnboardingQuestions(data: QuestionFetchingRequest):
     if response.data["onboarding_complete"] == False:
 
         # fetch the question from database
-        question_response = supabase.table("onboarding_questions").select("question_id, question, options").execute()
+        question_response = supabase.table("onboarding_questions").select("id, question, options").execute()
         print("Questions from database, query.py: ", question_response.data)
 
         questions =  question_response.data
 
         formatted_questions = [
             {
-                "id": q["question_id"],
+                "id": q["id"],
                 "question": q["question"],
                 "options": [opt for opt in q["options"]]
             }
@@ -85,13 +93,13 @@ def fetchOnboardingQuestions(data: QuestionFetchingRequest):
 @router.post("/userAnswersStore", response_model = DefaultMessage)
 def userAnswersStore(clerk_id, data: AnswersValidation):
 
-    print("Clerk ID: ", clerk_id)
-    print("Answers from the fronend , rquery.py: ", data)
+    print("Clerk ID userAnswersStore(): ", clerk_id)
+    print("Answers from the fronend , query.py: ", data)
 
 
     supabase = create_supabase_client()
 
-    # check if the user exist or not
+    # check if the user exist or not (by clerk_id)
     try:
         response = (
         supabase.table("user")
@@ -103,20 +111,30 @@ def userAnswersStore(clerk_id, data: AnswersValidation):
         if response:
 
             if response.data["onboarding_complete"] == False:
-                insert_answers = (
-                    supabase.table("onboarding_answers")
-                    .insert(
-                        {
-                            
-                        }
+
+                for key,value in data.answers.items():
+                    print("Question Id from query.py userAnswerStore(): ", key)
+                    print("Answers from query.py userAnswerStore(): ", value)
+
+                    insert_answers = (
+                        supabase.table("onboarding_answers")
+                        .insert(
+                            {
+                                'user_id': response.data.id,
+                                'question_id': key,
+                                'answer': value,
+                            }
+                        ).execute()
                     )
-                )
+                # if insert_answers.data:
+                return DefaultMessage(message="Successfully stored user answers!")
                 
     except Exception as e:
-
+            print("Error from userAnswersStore(), query.py: ", str(e))
+            return DefaultMessage(message="Could not store the data!")
     
     
 
-    # question_answers = {1:["option1"], 2: ["option1", "option2"]}
+    # question_answers = {questionId 1:["option1"], 2: ["option1", "option2"]}
 
-    return DefaultMessage(message = "Succesfully answered")
+    # return DefaultMessage(message = "Succesfully answered")

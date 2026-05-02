@@ -8,7 +8,7 @@ import {Checkbox} from 'expo-checkbox';
 import { Alert, ScrollView, StyleSheet, Text, TouchableOpacity, View } from 'react-native'
 import { useAuth, useUser } from '@clerk/expo';
 import axios from 'axios';
-import { useRoute } from '@react-navigation/native';
+import { useRouter } from 'expo-router';
 
 // const questions = [
 //   {
@@ -106,7 +106,7 @@ import { useRoute } from '@react-navigation/native';
 export default function OnBoarding() {
   // store selected answers: { questionId: [selectedOptions] }
   const [answers, setAnswers] = useState<Record<number, string[]>>({});
-  const [questions, setQuestions] = useState([]);
+  const [questions, setQuestions] = useState<{id: string; question: string; options: string[]}[]>([]);
 
   const [loading, setLoading] = useState(true);
   const [error, setError] = useState(null);
@@ -114,7 +114,7 @@ export default function OnBoarding() {
   // const [questions, setQuestions] = useState([{}]) // data from the database
   const {user} = useUser();
   const {getToken} = useAuth();
-  const router = useRoute();
+  const router = useRouter();
   
 
   useEffect(() => {
@@ -144,7 +144,7 @@ export default function OnBoarding() {
             }
           )
           if (response.data) {
-            setQuestions(response.data)
+            setQuestions(response.data.data)
             //console.log('Questions onboarding.tsx:', data.data); // List of QuestionResponse
           } else if (response.data.message) {
             Alert.alert("Onboarding already completed!!") // DefaultMessage
@@ -184,7 +184,7 @@ export default function OnBoarding() {
 
     )
 
-    if(response.data.message === "Succesfully answered"){
+    if(response.data.message === "Successfully stored user answers!"){
       Alert.alert("Thank you for you informations")
       router.replace("/(tabs)")
     }

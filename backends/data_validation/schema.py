@@ -1,5 +1,5 @@
 from pydantic import BaseModel
-from typing import List, Optional
+from typing import List, Optional, Dict
 class SignUpResponse(BaseModel):
   clerk_id: str
   email: str
@@ -36,7 +36,7 @@ class OnboardingQuestion(BaseModel):
   After asking for question from the databse this is 
   the response model from query.py fetchOnboardingQuestions()
   '''
-  id: int # question_id
+  id: str # question_id
   question: str
   options: List[str]
   # extra_information: str
@@ -68,7 +68,8 @@ class AnswersValidation(BaseModel):
   '''
   validate the data(user answers) from onboarding.py to query.py
   '''
-  clerk_id: str
-  question_id: int
-  answers: List[str]
+  # user_id: str
+  # question_id: int
+  # answers: List[str]
+  answers: Dict[str, List[str]]
 
