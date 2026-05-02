@@ -90,7 +90,7 @@ export default function VerifyScreen() {
 //     return () => clearTimeout(timer); // cleanup if user verifies in time
 // },[])
 
-const userRegostrationSupabase = async (data: userData) => {
+const userRegistrationSupabase = async (data: userData) => {
 
   try{
 
@@ -144,7 +144,7 @@ const userRegostrationSupabase = async (data: userData) => {
                           onboarding_complete: false,
                         }
                         console.log("New user:", newUser);
-                        const response = await userRegostrationSupabase(newUser);
+                        const response = await userRegistrationSupabase(newUser);
                         console.log("Response after getting the createUser in frontend: ", response);
                           //axios.
                         // check if the onboarding completed or not if not then router to onboarding page

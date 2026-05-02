@@ -7,6 +7,8 @@ from data_validation.schema import SignUpResponse, SignUpRequest
 router = APIRouter(prefix = "/api/auth")
 
 
+
+
 @router.post("/createUser")
 def createUser(data: SignUpRequest):
     supabase = create_supabase_client()
