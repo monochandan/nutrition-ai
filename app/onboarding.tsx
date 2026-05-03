@@ -5,10 +5,10 @@ import CustomButton from '@/components/CustomButton'
 import {Checkbox} from 'expo-checkbox';
 
 
-import { Alert, ScrollView, StyleSheet, Text, TouchableOpacity, View } from 'react-native'
+import { Alert, ScrollView, StyleSheet, Text, TouchableOpacity, View, ActivityIndicator } from 'react-native'
 import { useAuth, useUser } from '@clerk/expo';
 import axios from 'axios';
-import { useRouter } from 'expo-router';
+import { useRouter, useLocalSearchParams } from 'expo-router';
 
 // const questions = [
 //   {
@@ -105,7 +105,7 @@ import { useRouter } from 'expo-router';
 // question_answers = {1:["option1"], 2: ["option1", "option2"]}
 export default function OnBoarding() {
   // store selected answers: { questionId: [selectedOptions] }
-  const [answers, setAnswers] = useState<Record<number, string[]>>({});
+  const [answers, setAnswers] = useState<Record<string, string[]>>({});
   const [questions, setQuestions] = useState<{id: string; question: string; options: string[]}[]>([]);
 
   const [loading, setLoading] = useState(true);
@@ -113,13 +113,16 @@ export default function OnBoarding() {
 
   // const [questions, setQuestions] = useState([{}]) // data from the database
   const {user} = useUser();
-  const {getToken} = useAuth();
+  const {getToken, signOut} = useAuth();
   const router = useRouter();
+  const {clerk_id, email, name} = useLocalSearchParams()
   
 
   useEffect(() => {
 
     const fetchQuestions = async () => {
+
+      setLoading(true)
 
       const token = await getToken()
 
@@ -130,9 +133,9 @@ export default function OnBoarding() {
             "https://sustainer-sufferer-dormitory.ngrok-free.dev/api/userQuery/fetchOnboardingQuestions",
             {
               // data
-              clerk_id : user?.id ?? " ",
-              email: user?.primaryEmailAddress?.emailAddress ?? '',
-              name: user?.firstName ?? '',
+              clerk_id: clerk_id,
+              email: email, // user?.primaryEmailAddress?.emailAddress ?? '',
+              name: name, //user?.firstName ?? '',
               // plan: "free",
               // isActive: false,
               // onboarding_complete: false,
@@ -155,18 +158,30 @@ export default function OnBoarding() {
 
         }catch(error : any){
           console.log("Error from useeffect to fetch the questions from database (catch): ", JSON.stringify(error, null, 2));
-          Alert.alert("From catch useEffect Onboarding",error);
+          Alert.alert("From catch useEffect Onboarding",JSON.stringify(error, null, 2));
         } finally {
           // set loading false
+          setLoading(false)
         }
 
 
     };
 
     if(user) fetchQuestions()
-    
+    //fetchQuestions()
     
   }, [user])
+
+  if(loading){
+
+    return (
+            <SafeAreaView style={styles.loadingContainer}>
+                <ActivityIndicator size="large" color="#4CAF50" />
+                <Text style={styles.loadingText}>Loading queries...</Text>
+            </SafeAreaView>
+        )
+
+  }
 
 
   const submitOnBoarding = async () => {
@@ -177,7 +192,7 @@ export default function OnBoarding() {
         "https://sustainer-sufferer-dormitory.ngrok-free.dev/api/userQuery/userAnswersStore",
         {
 
-          clerk_id: user?.id,
+          clerk_id: clerk_id,
           data: answers 
 
         }
@@ -186,10 +201,11 @@ export default function OnBoarding() {
 
     if(response.data.message === "Successfully stored user answers!"){
       Alert.alert("Thank you for you informations")
-      router.replace("/(tabs)")
+      router.replace("/billing")
     }
     else{
       Alert.alert("Wrong!")
+      await signOut()
       router.replace("/(auth)/sign-up")
     }
 
@@ -202,7 +218,7 @@ export default function OnBoarding() {
 
 
 
-  const toggleOption = (questionId: number, option: string) => {
+  const toggleOption = (questionId: string, option: string) => {
     setAnswers(prev => {
       const current = prev[questionId] ?? []
       const already = current.includes(option)
@@ -215,7 +231,7 @@ export default function OnBoarding() {
     })
   }
 
-  const isSelected = (questionId: number, option: string) =>
+  const isSelected = (questionId: string, option: string) =>
     answers[questionId]?.includes(option) ?? false
 
   
@@ -351,6 +367,17 @@ const styles = StyleSheet.create({
     fontWeight: 'bold',
     fontSize: 16,
   },
+  loadingContainer: {
+        flex: 1,
+        justifyContent: 'center',
+        alignItems: 'center',
+        backgroundColor: '#fff9e3',
+    },
+    loadingText: {
+        marginTop: 16,
+        fontSize: 16,
+        color: '#555',
+    },
 })
 
 

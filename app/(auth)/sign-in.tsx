@@ -164,7 +164,7 @@ const SignIn = () => {
       justifyContent:'center',
       alignItems:'center',
       backgroundColor: "#fff9e3",
-      padding: 20,
+      padding: 5,
       gap: 10,
     },
     form:{

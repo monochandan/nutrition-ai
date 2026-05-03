@@ -71,5 +71,6 @@ class AnswersValidation(BaseModel):
   # user_id: str
   # question_id: int
   # answers: List[str]
-  answers: Dict[str, List[str]]
+  clerk_id: str
+  data: Dict[str, List[str]]
 

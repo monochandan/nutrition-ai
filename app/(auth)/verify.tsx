@@ -122,7 +122,7 @@ const userRegistrationSupabase = async (data: userData) => {
 
         if(signUp.status === 'complete'){
             await signUp.finalize({
-                navigate: async ({session, decorateUrl}) => {
+                navigate: async ({session}) => {
                         // setActive() → creates session 
                         // useAuth() → reads session
                         // when use first create the account
@@ -149,8 +149,16 @@ const userRegistrationSupabase = async (data: userData) => {
                           //axios.
                         // check if the onboarding completed or not if not then router to onboarding page
                         if(response.message === "Success"){
-                            Alert.alert('Welcome to healthy Journey!')
-                            router.replace(decorateUrl("/(tabs)") as Href);
+                            // Alert.alert('Welcome to healthy Journey!')
+                            router.replace({
+                              pathname: "/onboarding",
+                              params: {
+                                clerk_id: currentUser?.id ?? '',
+                                email: currentUser?.primaryEmailAddress?.emailAddress ?? '',
+                                name: name ?? '',
+                              }
+                          
+                          });
                         }
                         // else if(response.message === "Error"){
                         //   Alert.alert('Please Try again!')

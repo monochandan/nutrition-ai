@@ -64,6 +64,9 @@ def fetchOnboardingQuestions(data: QuestionFetchingRequest):
     # print("Users from database query.py, fetchOnboardingQuestions(): ", response.data)
     print("Onboarding complete or not: ",  response.data["onboarding_complete"])
     # print("ONBOARDING_QUESTIONS: ", ONBOARDING_QUESTIONS)
+    # get the clerk metadata for that user
+    user = clerk.users.get(user_id = data.clerk_id)
+    print("User metadata from clerk user.py def fetchOnboardingQuestions(): ", user.public_metadata)
 
     if response.data["onboarding_complete"] == False:
 
@@ -91,10 +94,10 @@ def fetchOnboardingQuestions(data: QuestionFetchingRequest):
         
 
 @router.post("/userAnswersStore", response_model = DefaultMessage)
-def userAnswersStore(clerk_id, data: AnswersValidation):
+def userAnswersStore(data: AnswersValidation):
 
-    print("Clerk ID userAnswersStore(): ", clerk_id)
-    print("Answers from the fronend , query.py: ", data)
+    print("Clerk ID userAnswersStore(): ", data.clerk_id)
+    print("Answers from the fronend , query.py: ", data.data)
 
 
     supabase = create_supabase_client()
@@ -104,15 +107,17 @@ def userAnswersStore(clerk_id, data: AnswersValidation):
         response = (
         supabase.table("user")
         .select("*")
-        .eq("clerk_id", clerk_id)
+        .eq("clerk_id", data.clerk_id)
         .single()
         .execute()
         )
         if response:
 
+            print("user from database userAnswersStore query.py: ", response)
+
             if response.data["onboarding_complete"] == False:
 
-                for key,value in data.answers.items():
+                for key,value in data.data.items():
                     print("Question Id from query.py userAnswerStore(): ", key)
                     print("Answers from query.py userAnswerStore(): ", value)
 
@@ -120,13 +125,21 @@ def userAnswersStore(clerk_id, data: AnswersValidation):
                         supabase.table("onboarding_answers")
                         .insert(
                             {
-                                'user_id': response.data.id,
+                                'user_id': response.data["id"],
                                 'question_id': key,
                                 'answer': value,
                             }
                         ).execute()
                     )
                 # if insert_answers.data:
+                # update the user metadata
+                user = clerk.users.update(
+                    user_id = data.clerk_id,
+                    public_metadata = {"onboarding_complete": True}
+                )
+                # After completed onboarding
+                print("User metadata from clerk after done onboarding, user.py def userAnswersStore(): ", user.public_metadata)
+
                 return DefaultMessage(message="Successfully stored user answers!")
                 
     except Exception as e:
