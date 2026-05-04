@@ -52,6 +52,10 @@ const Settings = () => {
     }
   }
 
+  const goPayWall = () => {
+    router.push("/billing")
+  }
+
 
   const fetchQuestions = async () => {
     
@@ -111,6 +115,8 @@ const Settings = () => {
         presSignOut}/>
 
       <CustomButton text="onBoarding" onPress={fetchQuestions}/>
+
+      <CustomButton text="paywall" onPress={goPayWall}/>
     </SafeAreaView>
   )
 }
