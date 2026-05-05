@@ -1,5 +1,6 @@
 from pydantic import BaseModel
 from typing import List, Optional, Dict
+from datetime import datetime
 class SignUpResponse(BaseModel):
   clerk_id: str
   email: str
@@ -54,7 +55,8 @@ class QuestionFetchingRequest(BaseModel):
   # onboarding_complete: bool
 
 class DefaultMessage(BaseModel):
-    message: str
+     message: Optional[str]
+     time: Optional[str]
 
 class OnboardingResponse(BaseModel):
     '''
@@ -73,4 +75,21 @@ class AnswersValidation(BaseModel):
   # answers: List[str]
   clerk_id: str
   data: Dict[str, List[str]]
+
+class SubscriptionType(BaseModel):
+   clerk_id:str
+   plan: Optional[str] # free, paid
+
+
+class PaymentIntentData(BaseModel):
+   paymentIntent:str
+   customerSessionClientSecret:str
+   customer:str
+   publishableKey:str
+
+class PaymentSheetResponse(BaseModel):
+    message: Optional[str] = None
+    paymentIntent: Optional[PaymentIntentData] = None
+
+   
 

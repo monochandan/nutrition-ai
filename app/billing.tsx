@@ -1,5 +1,8 @@
+import axios from 'axios'
+import { useLocalSearchParams, useRouter } from 'expo-router'
 import React, { useEffect, useState } from 'react'
 import {
+  Alert,
   SafeAreaView,
   ScrollView,
   StyleSheet,
@@ -22,14 +25,46 @@ const features = [
 ]
 
 export default function Paywall() {
+
+  const {clerk_id, email, name} = useLocalSearchParams()
   const [selectedPlan, setSelectedPlan] = useState<Plan>({plan:'trial', bill: 4.99});
+
+  const router = useRouter()
 
   useEffect(() => {
     console.log("Selected plan from billing.tsx: ",selectedPlan);
   })
 
   const billingMethod = async () => {
-    // call backend
+    // if plan is free
+    if(selectedPlan.plan === 'yearly'){
+      const response = await axios.post("url",
+        {
+          clerk_id: clerk_id,
+          plan: selectedPlan.plan // trial, yearly
+        }
+      )
+    }
+    // if plan is free
+    else if(selectedPlan.plan === 'trial')
+    {
+      const response = await axios.post(
+        "https://sustainer-sufferer-dormitory.ngrok-free.dev/api/paywall/free_paln",
+        {
+          clerk_id: clerk_id,
+          plan: selectedPlan.plan
+        }
+      )
+
+      if(response.data.message === "Failed"){
+        Alert.alert("Failed, again start the billig process")
+      }
+      else{
+        Alert.alert("Your free use started and will end: ", response.data.time)
+        // we have to call the llm and generate the initial food plans
+        router.replace("/(tabs)")
+      }
+    }
   }
 
   return (
