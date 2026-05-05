@@ -26,6 +26,13 @@
       "favicon": "./assets/images/favicon.png"
     },
     "plugins": [
+      [
+        "@stripe/stripe-react-native",
+        {
+          "merchantIdentifier": "merchant.nutritionai",
+          "enableGooglePay": false
+        }
+      ],
       "expo-router",
       [
         "expo-splash-screen",

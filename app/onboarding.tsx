@@ -120,6 +120,8 @@ export default function OnBoarding() {
 
   useEffect(() => {
 
+    // console.log("Clerk_id from onboarding: ", clerk_id)
+
     const fetchQuestions = async () => {
 
       setLoading(true)
@@ -201,7 +203,21 @@ export default function OnBoarding() {
 
     if(response.data.message === "Successfully stored user answers!"){
       Alert.alert("Thank you for you informations")
-      router.replace("/billing")
+      // router.replace({
+      //                         pathname: "/onboarding",
+      //                         params: {
+      //                           clerk_id: currentUser?.id ?? '',
+      //                           email: currentUser?.primaryEmailAddress?.emailAddress ?? '',
+      //                           name: name ?? '',
+      //                         }
+      router.replace({
+                      pathname: "/billing",
+                      params: {
+                        clerk_id: clerk_id,
+                        email: email,
+                        name: name
+                      }
+      })
     }
     else{
       Alert.alert("Wrong!")

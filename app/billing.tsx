@@ -1,7 +1,10 @@
+import { useUser } from '@clerk/expo'
+import { useStripe } from '@stripe/stripe-react-native'
 import axios from 'axios'
 import { useLocalSearchParams, useRouter } from 'expo-router'
 import React, { useEffect, useState } from 'react'
 import {
+  ActivityIndicator,
   Alert,
   SafeAreaView,
   ScrollView,
@@ -26,32 +29,137 @@ const features = [
 
 export default function Paywall() {
 
-  const {clerk_id, email, name} = useLocalSearchParams()
+  // const {clerk_id, email, name} = useLocalSearchParams<{clerk_id : string, email: string, name: string}>();
   const [selectedPlan, setSelectedPlan] = useState<Plan>({plan:'trial', bill: 4.99});
 
-  const router = useRouter()
+  const {initPaymentSheet, presentPaymentSheet} = useStripe();
+  const [loading, setLoading] = useState(true);
+
+  const [credFetch, setCredFetch] = useState(true)
+  const{user} = useUser()
+   const router = useRouter()
+
+  const [clerkId, setClerkId] = useState('');
+
+  const fetchClerkId = () =>{
+      const clerk_id = user?.id
+
+      if(clerk_id !== undefined)
+      {
+        setClerkId(clerk_id)
+        setCredFetch(false)
+      }
+
+  }
 
   useEffect(() => {
+    fetchClerkId()
     console.log("Selected plan from billing.tsx: ",selectedPlan);
+    console.log("Button clickable: ", loading);
+    console.log("Clerk id: ", clerkId)
   })
 
-  const billingMethod = async () => {
-    // if plan is free
-    if(selectedPlan.plan === 'yearly'){
-      const response = await axios.post("url",
+   useEffect(() => {
+    if(selectedPlan.plan === "yearly"){
+        setLoading(false)
+        initializePaymentSheet()
+    }
+   
+  },[selectedPlan])
+
+
+  if(credFetch){
+    return(
+      <SafeAreaView style={styles.loadingContainer}>
+                      <ActivityIndicator size="large" color="#4CAF50" />
+                      <Text style={styles.loadingText}>Loading queries...</Text>
+                  </SafeAreaView>
+    )
+  }
+ 
+
+  const fetchPaymentSheetParams = async () => {
+    // api call payment-sheet (if not free, if free then call freePlan())
+    const response = await axios.post(
+        "https://sustainer-sufferer-dormitory.ngrok-free.dev/api/paywall/payment_sheet",
         {
-          clerk_id: clerk_id,
-          plan: selectedPlan.plan // trial, yearly
+          clerk_id: clerkId,
+          plan: selectedPlan.plan
         }
       )
+
+      // "paymentIntent":paymentIntent.client_secret,
+      //           "customerSessionClientSecret":customerSession.client_secret,
+      //           "customer":id,
+      //           "publishableKey":publishable_key
+
+      const paymentIntent = response.data.paymentIntent
+      const ephemeralKey = response.data.customerSessionClientSecret
+      const customer_account = response.data.customer
+      // const publishableKey = response.data.publishableKey
+
+      return {
+        paymentIntent,
+        ephemeralKey,
+        customer_account,
+
+      };
+  
+  }
+
+  const initializePaymentSheet = async () => {
+    const {
+        paymentIntent,
+        ephemeralKey,
+        customer_account,
+    } = await fetchPaymentSheetParams();
+
+
+    const {error} = await initPaymentSheet({
+      merchantDisplayName: "Nutrition AI",
+      customerId: customer_account,
+      customerSessionClientSecret: ephemeralKey,
+      paymentIntentClientSecret: paymentIntent,
+
+      allowsDelayedPaymentMethods: true,
+      defaultBillingDetails:{
+        name: "Mono"
+      }
+
+    });
+
+    if(!error){
+      setLoading(true) // button will enabled after initializing the payment
     }
-    // if plan is free
-    else if(selectedPlan.plan === 'trial')
-    {
-      const response = await axios.post(
-        "https://sustainer-sufferer-dormitory.ngrok-free.dev/api/paywall/free_paln",
+  };
+
+  const openPaymentSheet = async () => {
+
+    const {error} = await presentPaymentSheet();
+
+    if(error){
+      Alert.alert(`Error code: ${error.code}`, error.message)
+    }
+    else{
+      // confirm in backend, update plan in supabase
+      Alert.alert('Success', 'Your order is confirmed')
+      // go to the home page
+
+    }
+
+  }
+
+ 
+ 
+  
+
+  // free plan selected
+  const freePlan = async () => {
+    //setLoading(false)
+    const response = await axios.post(
+        "https://sustainer-sufferer-dormitory.ngrok-free.dev/api/paywall/free_plan",
         {
-          clerk_id: clerk_id,
+          clerk_id: clerkId,
           plan: selectedPlan.plan
         }
       )
@@ -64,8 +172,47 @@ export default function Paywall() {
         // we have to call the llm and generate the initial food plans
         router.replace("/(tabs)")
       }
-    }
   }
+
+  // if(selectedPlan.plan === "trial"){
+  //   console.log("Selected plan:", selectedPlan);
+  //   freePlan()
+
+  // }
+
+  
+
+  // const billingMethod = async () => {
+  //   // if plan is free
+  //   if(selectedPlan.plan === 'yearly'){
+  //     const response = await axios.post("url",
+  //       {
+  //         clerk_id: clerk_id,
+  //         plan: selectedPlan.plan // trial, yearly
+  //       }
+  //     )
+  //   }
+  //   // if plan is free
+  //   else if(selectedPlan.plan === 'trial')
+  //   {
+  //     const response = await axios.post(
+  //       "https://sustainer-sufferer-dormitory.ngrok-free.dev/api/paywall/free_paln",
+  //       {
+  //         clerk_id: clerk_id,
+  //         plan: selectedPlan.plan
+  //       }
+  //     )
+
+  //     if(response.data.message === "Failed"){
+  //       Alert.alert("Failed, again start the billig process")
+  //     }
+  //     else{
+  //       Alert.alert("Your free use started and will end: ", response.data.time)
+  //       // we have to call the llm and generate the initial food plans
+  //       router.replace("/(tabs)")
+  //     }
+  //   }
+  // }
 
   return (
     <SafeAreaView style={styles.container}>
@@ -145,7 +292,9 @@ export default function Paywall() {
 
         {/* CTA Button */}
         <TouchableOpacity style={styles.ctaButton} activeOpacity={0.85}
-        onPress={billingMethod}>
+        disabled={selectedPlan.plan === "yearly" && !loading}
+        onPress={() => selectedPlan.plan === "trial"? freePlan() : openPaymentSheet()}
+        >
           <Text style={styles.ctaText}>
             {selectedPlan.plan === 'trial' ? 'Try for Free' : 'Get Yearly Plan'}
           </Text>
@@ -360,4 +509,15 @@ const styles = StyleSheet.create({
     fontSize: 12,
     color: '#888',
   },
+  loadingContainer: {
+        flex: 1,
+        justifyContent: 'center',
+        alignItems: 'center',
+        backgroundColor: '#fff9e3',
+    },
+    loadingText: {
+        marginTop: 16,
+        fontSize: 16,
+        color: '#555',
+    },
 })

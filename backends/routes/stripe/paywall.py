@@ -18,13 +18,13 @@ publishable_key = os.environ.get("STRIPE_PUBLISHABLE_KEY")
 
 client = stripe.StripeClient(secret_key)
 
-@router.post("/check_subscription")
-def check_subscription(data: SubscriptionType):
+@router.get("/fetchPublishableKey")
+def fetchPublishableKey():
      '''
      - check users subscription statement
      '''
      # check user subscription details
-     pass
+     return {"key": publishable_key}
 
 @router.post("/payment_sheet")# response_model = PaymentSheetResponse)
 def payment_sheet(data: SubscriptionType):
@@ -69,7 +69,7 @@ def payment_sheet(data: SubscriptionType):
              utility_response = create_customer_session(amount) 
              # insert the newely create id
              print("Response from payment_sheet() else condition, paywall.py: ", utility_response)
-             
+
              # add in the databse, the customer_id 
              return utility_response
             #  return PaymentSheetResponse(paymentIntent = PaymentIntentData(
@@ -88,7 +88,7 @@ def payment_sheet(data: SubscriptionType):
 
 # jsonify()
 
-@router.post("/free_paln", response_model=DefaultMessage)
+@router.post("/free_plan", response_model=DefaultMessage)
 def free_plan(data: SubscriptionType):
 
     # check if the (plan is 'paid' then return free quto has used already) under this same user
@@ -96,6 +96,8 @@ def free_plan(data: SubscriptionType):
     #plan = ""
     if data.plan == "trial":
         plan = "free"
+    else:
+         return DefaultMessage(message = "Failed")
     # check the user existence
 
     try:
@@ -114,13 +116,13 @@ def free_plan(data: SubscriptionType):
             return DefaultMessage(message = "Failed")
         
         end_date = datetime.now(timezone.utc) + timedelta(days = 3)
+        end_date_str = end_date.isoformat()
             
             # change the subscription_end_time
         change_subscription_date = (
                                 supabase.table("user")
-                                .select("*")
+                                .update({"subscription_end": end_date_str})
                                 .eq("clerk_id", data.clerk_id)
-                                .update("subscription_end", end_date)
                                 .execute()
             )
         end_date = str(end_date).split(".")[0]

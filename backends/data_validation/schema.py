@@ -56,7 +56,7 @@ class QuestionFetchingRequest(BaseModel):
 
 class DefaultMessage(BaseModel):
      message: Optional[str]
-     time: Optional[str]
+     time: Optional[str] = None
 
 class OnboardingResponse(BaseModel):
     '''
