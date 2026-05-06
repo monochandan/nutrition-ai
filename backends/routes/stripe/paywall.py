@@ -83,7 +83,7 @@ def payment_sheet(data: SubscriptionType):
         
     except Exception as e:
          print("Error from paywall.py payment_sheet(): ", str(e))
-         return PaymentSheetResponse(message="Failed")
+         return PaymentSheetResponse(message="Payment sheet generation problem")
 
 
 # jsonify()
@@ -97,7 +97,7 @@ def free_plan(data: SubscriptionType):
     if data.plan == "trial":
         plan = "free"
     else:
-         return DefaultMessage(message = "Failed")
+         return DefaultMessage(message = "Wrong Plan selected")
     # check the user existence
 
     try:
@@ -131,12 +131,12 @@ def free_plan(data: SubscriptionType):
                 # call LLM to generate the meal plan for three days on the user preferences (function_call)
 
                 return DefaultMessage(message="Success", time=end_date)
-        else:
-                return DefaultMessage(message = "Failed") 
+        # else:
+        #         return DefaultMessage(message = "Subscription problem") 
     
     except Exception as e:
         print("Error from catch free_plan(), paywall.py: ", str(e))
-        return DefaultMessage(message = "Failed")
+        return DefaultMessage(message = "Failed to get Free plan")
     
 
 

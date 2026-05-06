@@ -1,10 +1,12 @@
 from fastapi import APIRouter
 from db.supabase_client import create_supabase_client
 
-from data_validation.schema import SignUpResponse, SignUpRequest
+from data_validation.schema import SignUpResponse, SignUpRequest, SubscriptionType, AccessChecker, ClerkId
 from clerk_backend_api import Clerk
 import os
 from dotenv import load_dotenv
+
+from datetime import datetime, timezone
 
 router = APIRouter(prefix = "/api/auth")
 
@@ -53,3 +55,34 @@ def createUser(data: SignUpRequest):
     except Exception as e:
             print("Error from createUser catch:", str(e))
             return {"message": "Error"}
+
+@router.post("/userPlan_checker", response_model = AccessChecker)
+def userPlan_checker(data:ClerkId):
+     supabase = create_supabase_client()
+     print("Data: ", data.clerk_id)
+        #     class AccessChecker(BaseModel):
+        #    accessGranted: bool
+        #    message: str
+    
+     try:
+        response = (
+                supabase.table("user")
+                .select("*")
+                .eq("clerk_id", data.clerk_id)
+                .single()
+                .execute()
+            )
+        user = response.data
+        if not user["isActive"]:
+             return AccessChecker(accessGranted=False, message="Inactive User")
+        if not user["subscription_end"]:
+             return AccessChecker(accessGranted=False, message="No subscription")
+        if datetime.now(timezone.utc) > user["subscription_end"]:
+             return AccessChecker(accessGranted=False, message="Subscription expired")
+        
+        return AccessChecker(accessGranted=True, message="Access Granted")
+     
+     except Exception as e:
+            print("Catch error in user_plan() user.py: ", str(e))
+            return AccessChecker(accessGranted=False, message="Access Denied")
+

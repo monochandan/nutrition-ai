@@ -57,6 +57,7 @@ class QuestionFetchingRequest(BaseModel):
 class DefaultMessage(BaseModel):
      message: Optional[str]
      time: Optional[str] = None
+     
 
 class OnboardingResponse(BaseModel):
     '''
@@ -78,7 +79,7 @@ class AnswersValidation(BaseModel):
 
 class SubscriptionType(BaseModel):
    clerk_id:str
-   plan: Optional[str] # free, paid
+   plan: Optional[str] = None # free, paid
 
 
 class PaymentIntentData(BaseModel):
@@ -90,6 +91,13 @@ class PaymentIntentData(BaseModel):
 class PaymentSheetResponse(BaseModel):
     message: Optional[str] = None
     paymentIntent: Optional[PaymentIntentData] = None
+
+class AccessChecker(BaseModel):
+   accessGranted: bool = False
+   message: str = "Problem Undefined"
+
+class ClerkId(BaseModel):
+   clerk_id : str
 
    
 
