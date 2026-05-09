@@ -126,7 +126,7 @@ const userRegistrationSupabase = async (data: userData) => {
                         // setActive() → creates session 
                         // useAuth() → reads session
                         // when use first create the account
-                        setActive({
+                        await setActive({
                             session: session?.id
                         })
                          //https://sustainer-sufferer-dormitory.ngrok-free.dev

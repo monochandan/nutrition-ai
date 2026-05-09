@@ -9,6 +9,7 @@ import { Alert, ScrollView, StyleSheet, Text, TouchableOpacity, View, ActivityIn
 import { useAuth, useUser } from '@clerk/expo';
 import axios from 'axios';
 import { useRouter, useLocalSearchParams } from 'expo-router';
+import LoadingScreen from '@/components/LoadingScreen';
 
 // const questions = [
 //   {
@@ -160,7 +161,8 @@ export default function OnBoarding() {
 
         }catch(error : any){
           console.log("Error from useeffect to fetch the questions from database (catch): ", JSON.stringify(error, null, 2));
-          Alert.alert("From catch useEffect Onboarding",JSON.stringify(error, null, 2));
+          Alert.alert("From catch useEffect Onboarding",JSON.stringify(error, null, 2)); // CURRENTERROR
+          router.replace("/(auth)/sign-up")
         } finally {
           // set loading false
           setLoading(false)
@@ -176,12 +178,14 @@ export default function OnBoarding() {
 
   if(loading){
 
-    return (
-            <SafeAreaView style={styles.loadingContainer}>
-                <ActivityIndicator size="large" color="#4CAF50" />
-                <Text style={styles.loadingText}>Loading queries...</Text>
-            </SafeAreaView>
-        )
+    return <LoadingScreen text="Loading questions..." />
+
+    // return (
+    //         <SafeAreaView style={styles.loadingContainer}>
+    //             <ActivityIndicator size="large" color="#4CAF50" />
+    //             <Text style={styles.loadingText}>Loading queries...</Text>
+    //         </SafeAreaView>
+    //     )
 
   }
 

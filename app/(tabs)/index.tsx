@@ -1,4 +1,4 @@
-import { Image, View, Text, FlatList, StyleSheet, Pressable } from 'react-native';
+import { Image, View, Text, FlatList, StyleSheet, Pressable, ActivityIndicator } from 'react-native';
 import React from 'react';
 import dayjs from "dayjs";
 // import {Link} from 'expo-router';
@@ -33,6 +33,7 @@ const Tabs = () => {
     const [emailaddress, setEmailAddress] = useState<any>();
     const [userid, setUserId] = useState<any>();
     const [imageSource, setImageSource] = useState<any>();
+    const[loading, setoading] = useState(true)
 
 
     useEffect(() => {
@@ -88,7 +89,16 @@ const Tabs = () => {
     //     }
     // };
 
-
+     if(loading){
+    
+        return (
+                <SafeAreaView style={styles.loadingContainer}>
+                    <ActivityIndicator size="large" color="#4CAF50" />
+                    <Text style={styles.loadingText}>Loading queries...</Text>
+                </SafeAreaView>
+            )
+    
+      }
 
 
     // const clickImageAsync = async () => {
@@ -269,7 +279,18 @@ const Tabs = () => {
 const styles = StyleSheet.create({
     user_info:{
         
-    }
+    },
+    loadingContainer: {
+        flex: 1,
+        justifyContent: 'center',
+        alignItems: 'center',
+        backgroundColor: '#fff9e3',
+    },
+    loadingText: {
+        marginTop: 16,
+        fontSize: 16,
+        color: '#555',
+    },
 })
 
 export default Tabs;

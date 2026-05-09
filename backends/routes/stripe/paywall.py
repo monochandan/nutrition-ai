@@ -8,6 +8,8 @@ from db.supabase_client import create_supabase_client
 from datetime import datetime , timezone, timedelta
 from utility.utility_stripe import create_customer_session
 
+from utility.mealPlaner_APICall import get_user_details
+
 router = APIRouter(prefix="/api/paywall")
 
 
@@ -90,53 +92,66 @@ def payment_sheet(data: SubscriptionType):
 
 @router.post("/free_plan", response_model=DefaultMessage)
 def free_plan(data: SubscriptionType):
-
-    # check if the (plan is 'paid' then return free quto has used already) under this same user
     supabase = create_supabase_client()
-    #plan = ""
-    if data.plan == "trial":
-        plan = "free"
-    else:
-         return DefaultMessage(message = "Wrong Plan selected")
-    # check the user existence
+
+    if data.plan != "trial":
+        return DefaultMessage(message="Wrong Plan selected")
 
     try:
-
         response = (
-        supabase.table("user")
-        .select("*")
-        .eq("clerk_id", data.clerk_id)
-        .eq("plan", plan)
-        .single()
-        .execute()
+            supabase.table("user")
+            .select("*")
+            .eq("clerk_id", data.clerk_id)
+            .eq("plan", "free")
+            .single()
+            .execute()
         )
         user = response.data
-        
-        if user["subscription_end"]: # if new user then NULL value check teh null value
-            return DefaultMessage(message = "Failed")
-        
-        end_date = datetime.now(timezone.utc) + timedelta(days = 3)
-        end_date_str = end_date.isoformat()
-            
-            # change the subscription_end_time
-        change_subscription_date = (
-                                supabase.table("user")
-                                .update({"subscription_end": end_date_str})
-                                .eq("clerk_id", data.clerk_id)
-                                .execute()
-            )
-        end_date = str(end_date).split(".")[0]
 
-        if change_subscription_date:
-                # call LLM to generate the meal plan for three days on the user preferences (function_call)
+        # Block if free trial was already used (subscription_end is set)
+        if user["subscription_end"]:
+            return DefaultMessage(message="Free trial already used")
 
-                return DefaultMessage(message="Success", time=end_date)
-        # else:
-        #         return DefaultMessage(message = "Subscription problem") 
-    
+        # Generate meal plan first — subscription_end is still NULL so
+        # get_user_details will correctly treat this as the initial plan.
+        resp = get_user_details(data.clerk_id)
+        if not resp:
+            return DefaultMessage(message="Failed to generate meal plan")
+
+        # Only lock in the subscription after successful generation
+        end_date = datetime.now(timezone.utc) + timedelta(days=3)
+        supabase.table("user").update(
+            {"subscription_end": end_date.isoformat()}
+        ).eq("clerk_id", data.clerk_id).execute()
+
+        return DefaultMessage(message="Success", time=str(end_date).split(".")[0])
+
     except Exception as e:
-        print("Error from catch free_plan(), paywall.py: ", str(e))
-        return DefaultMessage(message = "Failed to get Free plan")
+        print("Error from free_plan(), paywall.py: ", str(e))
+        return DefaultMessage(message="Failed to get Free plan")
+    
+
+@router.post("/paid_plan", response_model=DefaultMessage)
+def paid_plan(data: SubscriptionType):
+    supabase = create_supabase_client()
+    try:
+        user = supabase.table("user").select("*").eq("clerk_id", data.clerk_id).single().execute().data
+
+        resp = get_user_details(data.clerk_id)  # same function, reads plan="paid" → 7 days
+        if not resp:
+            return DefaultMessage(message="Failed to generate meal plan")
+
+        end_date = datetime.now(timezone.utc) + timedelta(days=7)
+        supabase.table("user").update({
+            "plan": "paid",
+            "subscription_end": end_date.isoformat()
+        }).eq("clerk_id", data.clerk_id).execute()
+
+        return DefaultMessage(message="Success", time=str(end_date).split(".")[0])
+    except Exception as e:
+        print("Error from paid_plan(), paywall.py:", str(e))
+        return DefaultMessage(message="Failed to get Paid plan")
+
     
 
 

@@ -395,3 +395,254 @@ INSERT INTO public.onboarding_questions (id, question, options) VALUES
 -- ) TABLESPACE pg_default;
 
 #######################################################################################
+
+
+
+
+DATABASE
+
+user = (userid, clerkid, id, createdat, email, name, imageurl, plan, isActive, onboardingCompleted, 
+        billingstatus, stripecustomerid, subscriptionend, updateDate)
+
+onboardingquestions = (id, createdat, questionid, question, options, extrainfo)
+
+onboardinganswers = (id, createdat, userid, questionid, answer)
+
+DietPlan = (id, userid, planDurationDays, startdate, enddate, totalcalories, createdat, answermetadata, plantype, 
+            generatedBy, status[active, completed, paused, abandoned])
+
+UserPlanProgress = (id, userid, dietdayId, mealid, isCompleted, completedAt)
+
+DietMeals = (id, dietdayid, mealtype, mealname, mealcalories, protein, carbs, fats, othernitroitions)
+
+DietPlanDays = (id, dietPlanId, daynumber, dayname, date, nutritionfocus, dailyCalories, note, status [upcomig, active, completed, skipped])
+
+mealitem = (id, mealid, itemname, itemquantity, unit)
+
+userplanfeedback = (userId, dietPlanId, dietDayId, mealId, isComplete, rating, energyLevel, difficulty, 
+                    skipped_reason, notes, createdAt, mood_level, updatedAt)
+
+userSettings = (id, userId, feedbackfreequency, mealperday, breakfastTine, lunchtime, dinnerTine, mealsreminder
+              planexpiaryReminder, cusinepreferences, cookingComplexity, budget, unitSystem, createdAt, updatedAt)
+
+userStreak = (id, userId, currentStreak, LargestStreak, lastCompletedDate, updatedDate)
+
+
+userFoodUploads = (id, userId, imageURL, upladType, recognizedJson, processeddate)
+
+
+
+
+
+{
+  "plan_type": "muscle_gain",
+  "generated_by": "gemini-2.0-flash",
+  "start_date": "2026-01-18",
+  "end_date": "2026-01-24",
+  "plan_duration_days": 7,
+  "total_calories": 12850,
+  "diet_plan": [
+    {
+      "day": 1,
+      "date": "2026-01-18",
+      "weekday": "Sunday",
+      "daily_calories": 1795,
+      "nutrition_focus": ["High Protein", "Omega-3", "Fiber"],
+      "notes": "Focus on high-quality protein and healthy fats...",
+      "meals": {
+        "breakfast": {
+          "items": [
+            { "name": "Scrambled Eggs", "quantity": "2", "unit": "large" },
+            { "name": "Whole-wheat Toast", "quantity": "1 slice", "unit": "40g" },
+            { "name": "Avocado", "quantity": "1/4 medium", "unit": "50g" }
+          ],
+          "protein": 34,
+          "carbs": 23,
+          "fats": 21,
+          "other_nutrients": {
+            "Fiber": "6g",
+            "Vitamin K": "90mcg",
+            "Choline": "150mg"
+          },
+          "meal_calories": 420
+        },
+        "lunch": { "...": "same structure" },
+        "snack": { "...": "only if mealperday >= 4" },
+        "dinner": { "...": "same structure" }
+      }
+    }
+  ]
+}
+
+
+
+-- WARNING: This schema is for context only and is not meant to be run.
+-- Table order and constraints may not be valid for execution.
+
+CREATE TABLE public.diet_meals (
+  id uuid NOT NULL DEFAULT gen_random_uuid(),
+  created_at timestamp with time zone NOT NULL DEFAULT now(),
+  dietDayId uuid DEFAULT gen_random_uuid(),
+  mealType text,
+  mealName text,
+  mealCalories double precision,
+  mealProtein double precision,
+  mealCarbs double precision,
+  mealFats double precision,
+  otherNutrition jsonb,
+  mealOrder integer,
+  CONSTRAINT diet_meals_pkey PRIMARY KEY (id),
+  CONSTRAINT diet_meals_dietDayId_fkey FOREIGN KEY (dietDayId) REFERENCES public.diet_plan_days(id)
+);
+CREATE TABLE public.diet_plan (
+  id uuid NOT NULL DEFAULT gen_random_uuid(),
+  created_at timestamp with time zone NOT NULL DEFAULT now(),
+  planDurationDays bigint NOT NULL,
+  startDate timestamp with time zone,
+  endDate timestamp with time zone,
+  totalCalories double precision,
+  answermetadata jsonb,
+  planType text,
+  generatedBy text,
+  status text,
+  user_id uuid DEFAULT gen_random_uuid(),
+  CONSTRAINT diet_plan_pkey PRIMARY KEY (id),
+  CONSTRAINT diet_plan_user_id_fkey FOREIGN KEY (user_id) REFERENCES public.user(id)
+);
+CREATE TABLE public.diet_plan_days (
+  created_at timestamp with time zone NOT NULL DEFAULT now(),
+  dietPlanId uuid DEFAULT gen_random_uuid(),
+  dayNumber bigint,
+  dayName text,
+  date date,
+  nutritionFocus jsonb,
+  dailyCalories double precision,
+  note text,
+  status text,
+  id uuid NOT NULL DEFAULT gen_random_uuid(),
+  CONSTRAINT diet_plan_days_pkey PRIMARY KEY (id),
+  CONSTRAINT diet_plan_days_dietPlanId_fkey FOREIGN KEY (dietPlanId) REFERENCES public.diet_plan(id)
+);
+CREATE TABLE public.imagesUpload (
+  id uuid NOT NULL DEFAULT gen_random_uuid(),
+  created_at timestamp with time zone NOT NULL DEFAULT now(),
+  userId uuid DEFAULT gen_random_uuid(),
+  imagePath text,
+  uploadType text,
+  recognizedItems jsonb,
+  status text DEFAULT 'pending'::text,
+  source text,
+  CONSTRAINT imagesUpload_pkey PRIMARY KEY (id),
+  CONSTRAINT imagesUpload_userId_fkey FOREIGN KEY (userId) REFERENCES public.user(id)
+);
+CREATE TABLE public.onboarding_answers (
+  id uuid NOT NULL DEFAULT gen_random_uuid(),
+  created_at timestamp with time zone NOT NULL DEFAULT now(),
+  answer jsonb,
+  user_id uuid DEFAULT gen_random_uuid(),
+  question_id uuid,
+  CONSTRAINT onboarding_answers_pkey PRIMARY KEY (id),
+  CONSTRAINT onboarding_answers_user_id_fkey FOREIGN KEY (user_id) REFERENCES public.user(id),
+  CONSTRAINT onboarding_answers_question_id_fkey FOREIGN KEY (question_id) REFERENCES public.onboarding_questions(id)
+);
+CREATE TABLE public.onboarding_questions (
+  created_at timestamp with time zone NOT NULL DEFAULT now(),
+  question_id bigint,
+  question text,
+  options jsonb,
+  extra_information text,
+  id uuid NOT NULL DEFAULT gen_random_uuid(),
+  question_type text,
+  CONSTRAINT onboarding_questions_pkey PRIMARY KEY (id)
+);
+CREATE TABLE public.settings (
+  id uuid NOT NULL DEFAULT gen_random_uuid(),
+  created_at timestamp with time zone NOT NULL DEFAULT now(),
+  userId uuid DEFAULT gen_random_uuid(),
+  feedbackFrequency text DEFAULT 'weakly'::text,
+  mealsPerDay bigint DEFAULT '3'::bigint,
+  mealReminder boolean DEFAULT true,
+  weeklySummary boolean DEFAULT false,
+  planExpiryReminder boolean DEFAULT true,
+  cusinPreference text,
+  cookingComplexity text DEFAULT 'easy'::text,
+  budget text DEFAULT 'low'::text,
+  unitSystem text,
+  updatedAt timestamp with time zone,
+  CONSTRAINT settings_pkey PRIMARY KEY (id),
+  CONSTRAINT settings_userId_fkey FOREIGN KEY (userId) REFERENCES public.user(id)
+);
+CREATE TABLE public.usePlanProgress (
+  id uuid NOT NULL DEFAULT gen_random_uuid(),
+  created_at timestamp with time zone NOT NULL DEFAULT now(),
+  user_id uuid DEFAULT gen_random_uuid(),
+  diet_day_id uuid DEFAULT gen_random_uuid(),
+  diet_meal_id uuid DEFAULT gen_random_uuid(),
+  isCompleted boolean,
+  completedAt timestamp with time zone,
+  diet_plan_id uuid DEFAULT gen_random_uuid(),
+  CONSTRAINT usePlanProgress_pkey PRIMARY KEY (id),
+  CONSTRAINT usePlanProgress_diet_day_id_fkey FOREIGN KEY (diet_day_id) REFERENCES public.diet_plan_days(id),
+  CONSTRAINT usePlanProgress_user_id_fkey FOREIGN KEY (user_id) REFERENCES public.user(id),
+  CONSTRAINT usePlanProgress_diet_meal_id_fkey FOREIGN KEY (diet_meal_id) REFERENCES public.diet_meals(id),
+  CONSTRAINT usePlanProgress_diet_plan_id_fkey FOREIGN KEY (diet_plan_id) REFERENCES public.diet_plan(id)
+);
+CREATE TABLE public.user (
+  id uuid NOT NULL DEFAULT gen_random_uuid(),
+  created_at timestamp with time zone NOT NULL DEFAULT now(),
+  clerk_id character varying NOT NULL,
+  email character varying NOT NULL,
+  name text,
+  imageURL text,
+  plan text,
+  isActive boolean DEFAULT false,
+  onboarding_complete boolean DEFAULT false,
+  billing_status text DEFAULT 'monthly'::text,
+  stripe_customer_id text,
+  subscription_end timestamp with time zone,
+  CONSTRAINT user_pkey PRIMARY KEY (id)
+);
+CREATE TABLE public.userFeedBack (
+  id bigint GENERATED ALWAYS AS IDENTITY NOT NULL,
+  created_at timestamp with time zone NOT NULL DEFAULT now(),
+  user_id uuid DEFAULT gen_random_uuid(),
+  diet_plan_id uuid DEFAULT gen_random_uuid(),
+  diet_day_id uuid DEFAULT gen_random_uuid(),
+  diet_meal_id uuid DEFAULT gen_random_uuid(),
+  isCompleted boolean,
+  rating integer,
+  moodLevel integer,
+  energyLevel integer,
+  difficulty integer,
+  skipped_reason text,
+  notes text,
+  updated_at timestamp with time zone,
+  CONSTRAINT userFeedBack_pkey PRIMARY KEY (id),
+  CONSTRAINT userFeedBack_diet_plan_id_fkey FOREIGN KEY (diet_plan_id) REFERENCES public.diet_plan(id),
+  CONSTRAINT userFeedBack_diet_meal_id_fkey FOREIGN KEY (diet_meal_id) REFERENCES public.diet_meals(id),
+  CONSTRAINT userFeedBack_user_id_fkey FOREIGN KEY (user_id) REFERENCES public.user(id),
+  CONSTRAINT userFeedBack_diet_day_id_fkey FOREIGN KEY (diet_day_id) REFERENCES public.diet_plan_days(id)
+);
+CREATE TABLE public.userMealTimes (
+  id uuid NOT NULL DEFAULT gen_random_uuid(),
+  created_at timestamp with time zone NOT NULL DEFAULT now(),
+  userId uuid DEFAULT gen_random_uuid(),
+  mealOrder bigint,
+  mealName text,
+  mealTime time without time zone,
+  isActive boolean,
+  updated_at timestamp with time zone,
+  CONSTRAINT userMealTimes_pkey PRIMARY KEY (id),
+  CONSTRAINT userMealTimes_userId_fkey FOREIGN KEY (userId) REFERENCES public.user(id)
+);
+CREATE TABLE public.userStreak (
+  id uuid NOT NULL DEFAULT gen_random_uuid(),
+  created_at timestamp with time zone NOT NULL DEFAULT now(),
+  userId uuid DEFAULT gen_random_uuid(),
+  currentStreak bigint DEFAULT '0'::bigint,
+  largestStreak bigint DEFAULT '0'::bigint,
+  lastCompletedDate timestamp with time zone,
+  updated_at timestamp with time zone,
+  CONSTRAINT userStreak_pkey PRIMARY KEY (id),
+  CONSTRAINT userStreak_userId_fkey FOREIGN KEY (userId) REFERENCES public.user(id)
+);

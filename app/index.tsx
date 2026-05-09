@@ -21,7 +21,7 @@ const App = () => {
    const [isActive, setIsActive] = useState(true);
    const router = useRouter();
 
-   const {isSignedIn, signOut} = useAuth();
+   const {isSignedIn, signOut, isLoaded} = useAuth();
 
    useEffect(() =>{
 
