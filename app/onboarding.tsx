@@ -118,12 +118,13 @@ export default function OnBoarding() {
   const router = useRouter();
   const {clerk_id, email, name} = useLocalSearchParams()
   
-
+  console.log("Params from onboarding.tsx outside of the useEffect: ", clerk_id, email, name)
   useEffect(() => {
 
     // console.log("Clerk_id from onboarding: ", clerk_id)
 
     const fetchQuestions = async () => {
+      console.log("Inside fetchQuestions() in onboarding.tsx, params: ", clerk_id, email, name)
 
       setLoading(true)
 
@@ -171,10 +172,10 @@ export default function OnBoarding() {
 
     };
 
-    if(user) fetchQuestions()
+    if(user && clerk_id && email && name) fetchQuestions()
     //fetchQuestions()
     
-  }, [user])
+  }, [user, clerk_id, email, name])
 
   if(loading){
 

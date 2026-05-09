@@ -8,7 +8,7 @@ import { supabase } from '@/utils/supabase';
 import {useAuth} from "@clerk/expo";
 import { SafeAreaView } from 'react-native-safe-area-context';
 import { icons } from '@/constants/icons';
-
+import LoadingScreen from '@/components/LoadingScreen';
 import * as Progress from 'react-native-progress';
 
 const App = () => {
@@ -22,6 +22,8 @@ const App = () => {
    const router = useRouter();
 
    const {isSignedIn, signOut, isLoaded} = useAuth();
+
+   console.log("From root index:", isSignedIn, signOut, isLoaded);
 
    useEffect(() =>{
 
@@ -38,6 +40,10 @@ const App = () => {
       return () => clearTimeout(timer);
 
    },[progressPercentage, isActive]);
+
+   if (!isLoaded){
+      return <LoadingScreen text="Starting Up..." />
+   }
 
 
    // console.log("From root index:", isSignedIn, signOut);
@@ -61,6 +67,7 @@ const App = () => {
             <Progress.Bar progress={progressPercentage/maxProgress} animated={true} width={200} className='mb-5'/>
             <Text>Redirecting to sign in .....</Text>
             <Pressable title='Sign up' style={styles.button} onPress={() => {
+               if(!isLoaded) return;
                setIsActive(false);
                router.replace("/(auth)/sign-up");
             }} >
