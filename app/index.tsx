@@ -11,6 +11,8 @@ import { icons } from '@/constants/icons';
 import LoadingScreen from '@/components/LoadingScreen';
 import * as Progress from 'react-native-progress';
 
+
+
 const App = () => {
 
    const step = 1

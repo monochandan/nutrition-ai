@@ -1,9 +1,9 @@
-import { Image, View, Text, FlatList, StyleSheet, Pressable, ActivityIndicator } from 'react-native';
+import { Image, View, Text, FlatList, StyleSheet, Pressable, ActivityIndicator, Alert, Button } from 'react-native';
 import React from 'react';
 import dayjs from "dayjs";
 // import {Link} from 'expo-router';
 // import {camera} from "expo-camera";
-// import * as ImagePicker from "expo-image-picker";
+import * as ImagePicker from "expo-image-picker";
 import {useState, useEffect} from "react";
 import {icons} from "@/constants/icons";
 // import folder from "@/constants/icons";
@@ -22,6 +22,12 @@ import SubscriptionCard from '@/components/SubscriptionCard';
 import { useUser } from '@clerk/expo';
 
 import {useRouter} from "expo-router";
+import {CameraView, CameraType, useCameraPermissions} from 'expo-camera';
+import axios from 'axios';
+import LoadingScreen from '@/components/LoadingScreen';
+import AlertComponent from '@/components/AlertComponent';
+// import AddPlan from '../analysis/add-plan';
+
 const SafeAreaView = styled(RNSafeAreaView);
 
 const Tabs = () => {
@@ -33,8 +39,11 @@ const Tabs = () => {
     const [emailaddress, setEmailAddress] = useState<any>();
     const [userid, setUserId] = useState<any>();
     const [imageSource, setImageSource] = useState<any>();
-    const[loading, setoading] = useState(true)
-
+    const[loading, setLoading] = useState(true);
+    //const [accessDenied, setAccessDenied] = useState(false);
+    //const [activeAlert, setActiveAlert] = useState<'inactive_user'| 'no_subscription' | 'subscription_expired' | 'access_granted' | 'access_denied' | null>(null);
+    const [facing, setFacing] = useState<CameraType>('back');
+    const[permission, requestPermission] = useCameraPermissions();
 
     useEffect(() => {
         // every time the page load, user data will be fetchd and showd in the index page
@@ -48,6 +57,8 @@ const Tabs = () => {
         params.set("width", '64');
 
         setImageSource(`${imageurl}?${params.toString()}`);
+
+        setLoading(false)
 
         // console.log("url from index page", user?.imageUrl);
         // console.log("email address from index page:", user?.primaryEmailAddress?.emailAddress);
@@ -92,13 +103,77 @@ const Tabs = () => {
      if(loading){
     
         return (
-                <SafeAreaView style={styles.loadingContainer}>
-                    <ActivityIndicator size="large" color="#4CAF50" />
-                    <Text style={styles.loadingText}>Loading queries...</Text>
-                </SafeAreaView>
+                <LoadingScreen  text="Loading Home Screen..."/>
             )
     
       }
+
+      const AddPlanManually = async () => {
+
+        // check if the user is paid user or not
+        const response = await axios.post("https://sustainer-sufferer-dormitory.ngrok-free.dev/api/auth/userPlan_checker",
+            {
+                clerk_id: userid
+            }
+        )
+
+
+        if (response.data.message === "Inactive User" || response.data.message === "No Subscription" || response.data.message === "Subscription Expired") {
+            Alert.alert("Subscription Required", "You need a plan", [
+            { text: "Go Back", onPress: () => router.replace("/(tabs)") },
+            { text: "Go to Billing", onPress: () => router.replace("/billing") },
+            ]);
+            return;
+        }
+        if(response.data.message === "Access Granted"){
+            // setActiveAlert("access_granted")
+            Alert.alert("The meal will automatically generate!", "You can change your preferences at any time.", [
+            { text: "Go Back", onPress: () => router.replace("/(tabs)") },
+            { text: "Go to settings", onPress: () => router.replace("/settings") },
+            ]);
+            return;
+        }
+        if(response.data.message === "Access Denied"){
+            // setActiveAlert("access_denied")
+             Alert.alert("Access denied", "Access denied", [
+            { text: "Go Back", onPress: () => router.replace("/(tabs)") },
+            // { text: "Go to Billing", onPress: () => router.replace("/billing") },
+            ]);
+            return;
+        }
+
+
+      }
+
+     const ScanImage = () => {
+        Alert.alert("Image Type", "What are you scanning?", [
+            { text: "Grocery Items",  onPress: () => pickSource("grocery") },
+            { text: "Shopping List",  onPress: () => pickSource("shopping_list") },
+            { text: "Cancel", style: "cancel" },
+        ]);
+        };
+
+        const pickSource = (imageType: string) => {
+        Alert.alert("Select Source", "How do you want to add the image?", [
+            { text: "Take Photo",        onPress: () => openCamera(imageType) },
+            { text: "Choose from Gallery", onPress: () => openGallery(imageType) },
+            { text: "Cancel", style: "cancel" },
+        ]);
+        };
+
+
+    const openCamera = async (imageType: string) => {
+    const result = await ImagePicker.launchCameraAsync({ quality: 1, allowsEditing: true });
+    if (!result.canceled)
+        router.push({ pathname: "/analysis/image-scanner", params: { imageUri: result.assets[0].uri, imageType, clerk_id: userid } });
+    };
+
+    const openGallery = async (imageType: string) => {
+    const result = await ImagePicker.launchImageLibraryAsync({ quality: 1, allowsEditing: true });
+    if (!result.canceled)
+        router.push({ pathname: "/analysis/image-scanner", params: { imageUri: result.assets[0].uri, imageType, clerk_id: userid } });
+    };
+
 
 
     // const clickImageAsync = async () => {
@@ -125,6 +200,20 @@ const Tabs = () => {
 
   return (
     <SafeAreaView className="flex-1 bg-background p-5">
+
+        {/* {activeAlert === "inactive_user" && (
+            <AlertComponent
+                textHeader="You are not active yet!"
+                textBody="Payment initiative required."
+                cancleRouteText="Cancle"
+                accessRouteText="Upgrade Plan"
+                cancleRoute="/(tabs)"
+                accesRoute="/billing"
+            />
+        )} */}
+
+    
+
                     <FlatList
                         ListHeaderComponent={() =>
                             <>
@@ -141,11 +230,11 @@ const Tabs = () => {
                                         </View>
 
                                         <View className="flex-row item-center gap-5">
-                                            <Pressable onPress={() => router.push("/analysis/add-plan")}>
+                                            <Pressable onPress={() => AddPlanManually()}>
                                                     <Image source={icons.add} className="home-add-icon"/>
                                             </Pressable>
 
-                                            <Pressable onPress={() => router.push("/analysis/image-scanner")}>
+                                            <Pressable onPress={() => ScanImage()}>
                                                     <Image source={icons.imgscan} className="home-imscanner-icon"/>
                                             </Pressable>
                                             
@@ -166,7 +255,7 @@ const Tabs = () => {
                                                         width={7}
                                                         fill={percentage}
                                                         tintColor="#82c5e4"
-                                                        onAnimationComplete= {() => console.log('finished today calorie bar')}
+                                                        onAnimationComplete= {() => console.log(`You have finished ${percentage}% of your fat goal for today!`)}
                                                         backgroundColor="#edeef0"
                                                     >
                                                         {
@@ -181,7 +270,7 @@ const Tabs = () => {
                                                     width={7}
                                                     fill={percentage}
                                                     tintColor="#a4f41a"
-                                                    onAnimationComplete= {() => console.log('finished today calorie bar')}
+                                                    onAnimationComplete= {() => console.log(`You have finished ${percentage}% of your carb  goal for today!`)}
                                                     backgroundColor="#f4f7f9"
                                                 >
                                                     {
@@ -196,12 +285,12 @@ const Tabs = () => {
                                                         width={7}
                                                         fill={percentage}
                                                         tintColor="#ae23c0"
-                                                        onAnimationComplete= {() => console.log('finished today calorie bar')}
+                                                        onAnimationComplete= {() => console.log(`You have finished ${percentage}% of your protein goal for today!`)}
                                                         backgroundColor="#eff3f8"
                                                     >
                                                         {
                                                             () => (
-                                                            <Text>protien</Text>
+                                                            <Text>protein</Text>
                                                             )
                                                         }
                                                 </AnimatedCircularProgress>
@@ -214,7 +303,7 @@ const Tabs = () => {
                                                     width={15}
                                                     fill={percentage}
                                                     tintColor="#00e0ff"
-                                                    onAnimationComplete= {() => console.log('finished today calorie bar')}
+                                                    onAnimationComplete= {() => console.log(`You have finished ${percentage}% of your calorie goal for today!`)}
                                                     backgroundColor="#f5f5f5"
                                                 >
                                                     {

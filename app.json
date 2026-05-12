@@ -27,6 +27,15 @@
     },
     "plugins": [
       [
+        "expo-camera",
+        {
+          "cameraPermission": "Allow $(NutritionAI) to access your camera",
+          "microphonePermission": "Allow $(NutritionAI) to access your microphone",
+          "recordAudioAndroid": true,
+          "barcodeScannerEnabled": true
+        }
+      ],
+      [
         "@stripe/stripe-react-native",
         {
           "merchantIdentifier": "merchant.nutritionai",

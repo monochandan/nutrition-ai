@@ -207,6 +207,7 @@ export default function OnBoarding() {
     )
 
     if(response.data.message === "Successfully stored user answers!"){
+      // chenge the onboarding_complete to true in the database for that user
       Alert.alert("Thank you for you informations")
       // router.replace({
       //                         pathname: "/onboarding",
